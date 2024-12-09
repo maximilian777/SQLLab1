@@ -10,26 +10,27 @@ public class JDBCTest {
 
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 2) {
-            System.out.println("Usage: java JDBCTest <user> <password>");
-            System.exit(0);
-        }
+//        if (args.length != 2) {
+//            System.out.println("Usage: java JDBCTest <user> <password>");
+//            System.exit(0);
+//        }
 
-        String user = args[0]; // user name
-        String pwd = args[1]; // password 
+        String user = "root"; //args[0]; // user name
+        String pwd = "password"; //args[1]; // password
         System.out.println(user + ", *********");
-        String database = "Company"; // the name of the specific database 
+        String database = "Library"; // the name of the specific database
         String server
                 = "jdbc:mysql://localhost:3306/" + database
                 + "?UseClientEnc=UTF8";
 
         Connection con = null;
         try {
+            System.out.println("Connecting to database...");
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection(server, user, pwd);
             System.out.println("Connected!");
 
-            executeQuery(con, "SELECT * FROM T_Employee");
+            executeQuery(con, "SELECT * FROM T_Book");
         } finally {
             try {
                 if (con != null) {

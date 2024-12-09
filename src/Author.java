@@ -3,11 +3,12 @@ public class Author {
     private final String lastName;
     private String[] bibliography;
     private final String birthDate;
+    private final String deathDate;
 
-    Author(String firstName, String lastname, String[] bibliography, String birthDate) {
+    Author(String firstName, String lastname, String birthDate, String deathDate) {
         this.firstName = firstName;
         this.lastName = lastname;
-        this.bibliography = bibliography;
         this.birthDate = birthDate;
+        this.deathDate = deathDate;
     }
 }
