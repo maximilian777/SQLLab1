@@ -10,4 +10,9 @@ public class User {
         this.reviews = reviews;
         this.accountCreationDate = accountCreationDate;
     }
+
+    public String getUsername() {return username;}
+    public String getPassword() {return password;}
+    public Review[] getReviews() {return reviews;}
+    public String getAccountCreationDate() {return accountCreationDate;}
 }

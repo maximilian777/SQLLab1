@@ -1,10 +1,5 @@
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class JDBCTest {
 
@@ -29,8 +24,8 @@ public class JDBCTest {
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection(server, user, pwd);
             System.out.println("Connected!");
-
-            executeQuery(con, "SELECT * FROM T_Book");
+            String query = "SELECT * FROM T_Book";
+            executeQuery(con, query);
         } finally {
             try {
                 if (con != null) {

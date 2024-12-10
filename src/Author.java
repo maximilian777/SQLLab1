@@ -11,4 +11,10 @@ public class Author {
         this.birthDate = birthDate;
         this.deathDate = deathDate;
     }
+
+    public String getFirstName() {return firstName;}
+    public String getLastName() {return lastName;}
+    public String[] getBibliography() {return bibliography;}
+    public String getBirthDate() {return birthDate;}
+    public String getDeathDate() {return deathDate;}
 }
