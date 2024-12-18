@@ -1,3 +1,5 @@
+package Model;
+
 public class Author {
     private final String firstName;
     private final String lastName;

@@ -1,4 +1,6 @@
 
+import View.Controller;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -15,6 +17,7 @@ public class JDBCTest {
 //            System.exit(0);
 //        }
 
+
         String user = "root"; //args[0]; // user name
         String pwd = "password"; //args[1]; // password
         System.out.println(user + ", *********");
@@ -30,7 +33,10 @@ public class JDBCTest {
             con = DriverManager.getConnection(server, user, pwd);
             System.out.println("Connected!");
 
-            executeQuery(con, "SELECT * FROM T_Book");
+            Controller controller = new Controller(con);
+            controller.startQuerying();
+
+            executeQuery(con, "SELECT * FROM T_Author");
         } finally {
             try {
                 if (con != null) {
@@ -64,7 +70,7 @@ public class JDBCTest {
                 // It's also advisable to store each tuple (row) in an object of
                 // custom type (e.g. Employee).
                 for (int c = 1; c <= ccount; c++) {
-                    System.out.print(rs.getObject(c) + "\t");
+                    System.out.print(rs.getString(c) + "\t");
                 }
                 System.out.println();
             }

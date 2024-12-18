@@ -1,3 +1,5 @@
+package Model;
+
 public class Review {
     private final Book book;
     private int rating;

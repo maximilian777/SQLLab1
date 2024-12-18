@@ -1,3 +1,4 @@
+package Model;
 
 public class Book {
     private final String title;
@@ -13,6 +14,7 @@ public class Book {
         this.pages = pages;
         this.ISBN = ISBN;
     }
+
 }
 
 
