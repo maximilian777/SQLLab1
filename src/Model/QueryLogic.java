@@ -102,7 +102,7 @@ public class QueryLogic {
     }
 
     public void insertToAuthors(String firstName, String lastName, String birthDate, String deathDate) throws SQLException {
-        String query = "INSERT TO T_Author VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO T_Author VALUES (?, ?, ?, ?)";
         PreparedStatement ps = con.prepareStatement(query);
 
         ps.setString(1, firstName);
@@ -114,11 +114,21 @@ public class QueryLogic {
         System.out.println(res + " records inserted");
     }
 
-    public void insertToBooks() {
+    //need to add authors list perhaps? idfk how to do this one chief
+    public void insertToBooks(String ISBN, String title, String genre, int pages) throws SQLException {
+        String query = "INSERT INTO T_Book VALUES (?, ?, ?, ?)";
+        PreparedStatement ps = con.prepareStatement(query);
+        ps.setString(1, ISBN);
+        ps.setString(2, title);
+        ps.setString(3, genre);
+        ps.setInt(4, pages);
+        int res = ps.executeUpdate();
+        System.out.println(res + " records inserted");
 
     }
 
-    public void insertToReviews() {
+    //users array needed I think idk how to do this
+    public void insertToReviews(String ISBN) {
 
     }
 }
