@@ -8,17 +8,17 @@ public class Book {
     private List<Author> authors;
     private String genre;
     private int pages;
-    private int ISBN;
+    private String ISBN;
 
     Book() {
         this.title = "";
         this.authors = new ArrayList<Author>();
         this.genre = "";
         this.pages = 0;
-        this.ISBN = 0;
+        this.ISBN = "";
     }
 
-    Book(String title, List<Author> authors, String genre, int pages, int ISBN) {
+    public Book(String title, List<Author> authors, String genre, int pages, String ISBN) {
         this.title = title;
         this.authors = new ArrayList<Author>();
         this.genre = genre;
@@ -58,11 +58,11 @@ public class Book {
         this.pages = pages;
     }
 
-    public int getISBN() {
+    public String getISBN() {
         return ISBN;
     }
 
-    public void setISBN(int ISBN) {
+    public void setISBN(String ISBN) {
         this.ISBN = ISBN;
     }
 }
