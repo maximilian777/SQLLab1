@@ -1,12 +1,9 @@
 
-import View.Controller;
+import Controller.Controller;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 
 //this will be a part of the logic, it will basically handle the connection and send all the relevant data to controller
@@ -43,6 +40,8 @@ public class JDBC {
             System.out.println(e.getMessage());
             System.out.println("Access denied! Please check if you input your credentials correctly.");
         } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
             try {

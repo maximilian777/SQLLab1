@@ -64,7 +64,7 @@ public class QueryLogic {
                 book.setTitle(rs.getString("title"));
                 book.setGenre(rs.getString("genre"));
                 book.setPages(rs.getInt("pages"));
-                book.setAuthors(getAuthorsForBook(book.getISBN()));
+                book.setAuthors(selectAuthorsForBook(book.getISBN()));
                 books.add(book);
             }
             for (Book book : books) {
@@ -80,7 +80,7 @@ public class QueryLogic {
         }
     }
 
-    private List<Author> getAuthorsForBook(String ISBN) throws SQLException {
+    private List<Author> selectAuthorsForBook(String ISBN) throws SQLException {
         List<Author> authorsForBook = new ArrayList<>();
 
         String query = "SELECT a.firstName, a.lastName, a.aID " +
@@ -206,9 +206,8 @@ public class QueryLogic {
             con.setAutoCommit(true);
         }
 
-        // Insert authors for the book into the T_Book_Authors table using the bookAuthors() method
         for (Author author : book.getAuthors()) {
-            bookAuthors(book.getISBN(), author.getAuthorID());  // Use the existing method
+            bookAuthors(book.getISBN(), author.getAuthorID());
         }
     }
 
@@ -267,7 +266,7 @@ public class QueryLogic {
             ps.setString(1, newBook.getTitle());
             ps.setString(2, newBook.getGenre());
             ps.setInt(3, newBook.getPages());
-            ps.setInt(4, oldBook.getISBN());
+            ps.setString(4, oldBook.getISBN());
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -284,7 +283,7 @@ public class QueryLogic {
             ps.setInt(1, newReview.getRating());
             ps.setString(2, newReview.getReviewText());
             ps.setString(3, newReview.getReviewer().getUsername());
-            ps.setInt(4, oldReview.getBook().getISBN());
+            ps.setString(4, oldReview.getBook().getISBN());
         }
         catch (Exception e) {
             throw new RuntimeException(e);
