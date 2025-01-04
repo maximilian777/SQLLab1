@@ -8,8 +8,7 @@ public class LoginView {
 
     }
 
-    public String[] testBox() {
-        //JOptionPane.showMessageDialog(null, "This is a dialog box", "title", JOptionPane.PLAIN_MESSAGE);
+    public String[] userLogin() {
         JPanel loginCredentials = new JPanel(new GridLayout(2,2));
         loginCredentials.add(new JLabel("Username: "));
         JTextField username = new JTextField();
@@ -27,10 +26,7 @@ public class LoginView {
             return new String[] {usernameData, passwordData};
         }
         else {
-            return new String[] {"", ""};
+            return new String[] {"", "#####"};
         }
-
-
     }
-
 }

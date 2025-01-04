@@ -1,12 +1,9 @@
 
 import Controller.Controller;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-
-//this will be a part of the logic, it will basically handle the connection and send all the relevant data to controller
 public class JDBC {
 
     String user;
@@ -17,13 +14,9 @@ public class JDBC {
         this.pass = password;
     }
 
-    //public static void main(String[] args) {
-
     public void connectToDB() throws SQLException {
         String database = "Library"; // the name of the specific database
-        String server
-                = "jdbc:mysql://localhost:3306/" + database
-                + "?UseClientEnc=UTF8";
+        String server = "jdbc:mysql://localhost:3306/" + database + "?UseClientEnc=UTF8";
 
         Connection con = null;
         try {
@@ -33,16 +26,14 @@ public class JDBC {
             System.out.println("Connected!");
 
             Controller controller = new Controller(con);
-            controller.saveUserData(user, pass); //todo:fix "table 'mysql.users' doesn't exist"
-            controller.startQuerying();
+            controller.saveUserData(user, pass);
 
+            controller.startQuerying();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             System.out.println("Access denied! Please check if you input your credentials correctly.");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        } catch (ClassNotFoundException | InterruptedException e) {
+            e.printStackTrace();
         } finally {
             try {
                 if (con != null) {
@@ -50,7 +41,7 @@ public class JDBC {
                     System.out.println("Connection closed.");
                 }
             } catch (SQLException e) {
-
+                e.printStackTrace();
             }
         }
     }

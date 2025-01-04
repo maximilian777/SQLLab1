@@ -37,14 +37,6 @@ public class QueryLogic {
                 }
                 authors.add(author);
             }
-            for (Author author : authors) {
-
-                if (author.getDeathDate() != null) {
-                    System.out.println(author.getFirstName() + " " + author.getLastName() + " " + author.getBirthDate() + " " + author.getDeathDate());
-                } else {
-                    System.out.println(author.getFirstName() + " " + author.getLastName() + " " + author.getBirthDate());
-                }
-            }
         }
         catch (Exception e) {
             //ya
@@ -66,16 +58,6 @@ public class QueryLogic {
                 book.setPages(rs.getInt("pages"));
                 book.setAuthors(selectAuthorsForBook(book.getISBN()));
                 books.add(book);
-            }
-            for (Book book : books) {
-                System.out.println("Book ISBN: " + book.getISBN());
-                System.out.println("Title: " + book.getTitle());
-                System.out.println("Genre: " + book.getGenre());
-                System.out.println("Pages: " + book.getPages());
-                System.out.println("Authors:");
-                for (Author author : book.getAuthors()) {
-                    System.out.println("  " + author.getFirstName() + " " + author.getLastName());
-                }
             }
         }
     }
@@ -291,5 +273,13 @@ public class QueryLogic {
         finally {
             con.setAutoCommit(true);
         }
+    }
+
+    public List<Book> getBooks() {return books;}
+
+    public List<Author> getAuthors() {return authors;}
+
+    public List<Review> getReviews() {
+        return reviews;
     }
 }

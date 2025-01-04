@@ -25,7 +25,7 @@ public class Main {
 //                password = sc.nextLine();
 //            }
 //            System.out.println(username + " " + password);
-            String[] inputs = view.testBox();
+            String[] inputs = view.userLogin();
             JDBC jdbc = new JDBC(inputs[0], inputs[1]);
             jdbc.connectToDB();
 
