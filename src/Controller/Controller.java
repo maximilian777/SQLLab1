@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 public class Controller {
 
     private Connection con;
-    private QueryLogic queryLogic;
+    private QL_Interface queryLogic;
     private UserLogic userLogic;
     private BookController bookController;
     private AuthorController authorController;

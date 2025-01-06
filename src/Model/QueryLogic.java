@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class QueryLogic {
+public class QueryLogic implements QL_Interface {
 
     Connection con;
     List<Book> books;
@@ -18,7 +18,6 @@ public class QueryLogic {
         authors = new ArrayList<>();
         reviews = new ArrayList<>();
     }
-
 
 
     public void selectAllFromAuthor() throws SQLException {
@@ -37,12 +36,8 @@ public class QueryLogic {
                 }
                 authors.add(author);
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             //ya
-        }
-        finally {
-            //con.close();
         }
     }
 
@@ -62,7 +57,7 @@ public class QueryLogic {
         }
     }
 
-    private List<Author> selectAuthorsForBook(String ISBN) throws SQLException {
+    public List<Author> selectAuthorsForBook(String ISBN) throws SQLException {
         List<Author> authorsForBook = new ArrayList<>();
 
         String query = "SELECT a.firstName, a.lastName, a.aID " +
@@ -111,30 +106,28 @@ public class QueryLogic {
     }
 
     public void insertToAuthors(String firstName, String lastName, String birthDate) throws SQLException {
-            String query = "INSERT TO T_Author VALUES (?, ?, ?, ?)";
-            PreparedStatement ps = null;
-            try  {
-                con.setAutoCommit(false);
-                ps = con.prepareStatement(query);
-                ps.setString(1, firstName);
-                ps.setString(2, lastName);
-                ps.setString(3, birthDate);
-                int res = ps.executeUpdate();
-                con.commit();
-                System.out.println(res + " records inserted");
+        String query = "INSERT TO T_Author VALUES (?, ?, ?, ?)";
+        PreparedStatement ps = null;
+        try {
+            con.setAutoCommit(false);
+            ps = con.prepareStatement(query);
+            ps.setString(1, firstName);
+            ps.setString(2, lastName);
+            ps.setString(3, birthDate);
+            int res = ps.executeUpdate();
+            con.commit();
+            System.out.println(res + " records inserted");
+        } catch (Exception e) {
+            if (con != null) {
+                con.rollback();
             }
-            catch (Exception e) {
-                if (con != null) {
-                    con.rollback();
-                }
-                throw e;
+            throw e;
+        } finally {
+            if (ps != null) {
+                ps.close();
             }
-            finally {
-                if (ps != null) {
-                    ps.close();
-                }
-                con.setAutoCommit(true);
-            }
+            con.setAutoCommit(true);
+        }
     }
 
     public void insertToAuthors(String firstName, String lastName, String birthDate, String deathDate) throws SQLException {
@@ -150,13 +143,11 @@ public class QueryLogic {
             int res = ps.executeUpdate();
             con.commit();
             System.out.println(res + " records inserted");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             if (con != null) {
                 con.rollback();
             }
-        }
-        finally {
+        } finally {
             if (ps != null) {
                 ps.close();
             }
@@ -167,7 +158,7 @@ public class QueryLogic {
     public void insertToBooks(Book book) throws SQLException {
         String query = "INSERT INTO T_Book (ISBN, title, genre, pages) VALUES (?, ?, ?, ?)";
         PreparedStatement ps = null;
-        try  {
+        try {
             con.setAutoCommit(false);
             ps = con.prepareStatement(query);
             ps.setString(1, book.getISBN());
@@ -177,11 +168,11 @@ public class QueryLogic {
             int res = ps.executeUpdate();
             con.commit();
             System.out.println(res + " records inserted");
-        }catch (Exception e) {
+        } catch (Exception e) {
             if (con != null) {
                 con.rollback();
             }
-        }finally {
+        } finally {
             if (ps != null) {
                 ps.close();
             }
@@ -266,18 +257,20 @@ public class QueryLogic {
             ps.setString(2, newReview.getReviewText());
             ps.setString(3, newReview.getReviewer().getUsername());
             ps.setString(4, oldReview.getBook().getISBN());
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-        finally {
+        } finally {
             con.setAutoCommit(true);
         }
     }
 
-    public List<Book> getBooks() {return books;}
+    public List<Book> getBooks() {
+        return books;
+    }
 
-    public List<Author> getAuthors() {return authors;}
+    public List<Author> getAuthors() {
+        return authors;
+    }
 
     public List<Review> getReviews() {
         return reviews;

@@ -1,6 +1,7 @@
 package Controller;
 
 import Model.Author;
+import Model.QL_Interface;
 import Model.QueryLogic;
 
 import java.sql.SQLException;
@@ -8,9 +9,9 @@ import java.util.List;
 
 public class AuthorController {
 
-    private final QueryLogic queryLogic;
+    private final QL_Interface queryLogic;
 
-    public AuthorController(QueryLogic queryLogic) {
+    public AuthorController(QL_Interface queryLogic) {
         this.queryLogic = queryLogic;
     }
 

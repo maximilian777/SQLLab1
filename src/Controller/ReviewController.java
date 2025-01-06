@@ -1,8 +1,5 @@
 package Controller;
-import Model.Review;
-import Model.Book;
-import Model.User;
-import Model.QueryLogic;
+import Model.*;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -10,9 +7,9 @@ import java.util.List;
 
     public class ReviewController {
 
-        private QueryLogic queryLogic;
+        private QL_Interface queryLogic;
 
-        public ReviewController(QueryLogic queryLogic) {
+        public ReviewController(QL_Interface queryLogic) {
             this.queryLogic = queryLogic;
         }
 
