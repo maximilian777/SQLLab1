@@ -12,12 +12,14 @@ import java.util.concurrent.TimeUnit;
 public class Controller {
 
     private Connection con;
-    private QL_Interface queryLogic;
+    private QueryLogic queryLogic;
     private UserLogic userLogic;
     private BookController bookController;
     private AuthorController authorController;
     private ReviewController reviewController;
     private UserView userView;
+
+    private String currentUser;
 
     public Controller(Connection con) {
         this.con = con;
@@ -26,7 +28,7 @@ public class Controller {
         this.bookController = new BookController(queryLogic);
         this.authorController = new AuthorController(queryLogic);
         this.reviewController = new ReviewController(queryLogic);
-        this.userView = new UserView();
+        this.userView = new UserView(bookController, authorController, reviewController, logoutAction);
     }
 
     public void startQuerying() throws SQLException, InterruptedException {
@@ -37,7 +39,7 @@ public class Controller {
                     List<Book> books = bookController.getAllBooks();
                     List<Author> authors = authorController.getAllAuthors();
                     List<Review> reviews = reviewController.getAllReviews();
-                    userView.showUserProfile(books, authors,reviews);
+                    userView.showUserProfile(books, authors, reviews, this::getCurrentUser);
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
                 }
@@ -45,12 +47,29 @@ public class Controller {
         } finally {
             execute.shutdown();
             execute.awaitTermination(10, TimeUnit.SECONDS);
-            con.close();
         }
     }
 
+    private final Runnable logoutAction = () -> {
+        System.out.println("Logout action invoked.");
+        try {
+            if (con != null && !con.isClosed()) {
+                con.close();
+                System.out.println("Connection closed successfully!");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error while closing connection: " + e.getMessage());
+            e.printStackTrace();
+        }
+    };
+
     public void saveUserData(String username, String password) throws SQLException {
         userLogic.saveUserData(username, password);
+        this.currentUser = username;
+    }
+
+    public String getCurrentUser() {
+        return getCurrentUser();
     }
 
     public BookController getBookController() {

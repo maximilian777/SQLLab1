@@ -1,46 +1,107 @@
 package View;
 
+import Controller.AuthorController;
+import Controller.BookController;
+import Controller.ReviewController;
 import Model.Author;
 import Model.Book;
 import Model.Review;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class UserView {
 
-    public UserView() {
+    private final BookController bookController;
+    private final AuthorController authorController;
+    private final ReviewController reviewController;
+    private final Runnable logoutAction;
+
+    public UserView(BookController bookController, AuthorController authorController, ReviewController reviewController, Runnable logoutAction) {
+        this.bookController = bookController;
+        this.authorController = authorController;
+        this.reviewController = reviewController;
+        this.logoutAction = logoutAction;
     }
 
-    public void showUserProfile(List<Book> books, List<Author> authors, List<Review> reviews) {
+    public void showUserProfile(List<Book> books, List<Author> authors, List<Review> reviews, Supplier<String> getUser) throws SQLException {
         JFrame userFrame = new JFrame("User Menu");
         userFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        userFrame.setSize(300, 150);
+        userFrame.setSize(450, 300);
 
-        JPanel currentUserPanel = new JPanel(new GridLayout(2, 3));
+        JPanel currentUserPanel = new JPanel(new GridLayout(3, 3));
         JButton viewBooksButton = new JButton("View Books");
         JButton viewAuthorsButton = new JButton("View Authors");
         JButton viewReviewsButton = new JButton("View Reviews");
         JButton inputBookButton = new JButton("Insert Book");
         JButton inputAuthorButton = new JButton("Insert Author");
-        JButton inputReviewButton = new JButton("Write a review");
+        JButton inputReviewButton = new JButton("Write a Review");
+        JButton inputAuthorToBookButton = new JButton("Assign Author to Book");
+        JButton logOutButton = new JButton("Log out");
+
         currentUserPanel.add(viewBooksButton);
         currentUserPanel.add(viewAuthorsButton);
         currentUserPanel.add(viewReviewsButton);
         currentUserPanel.add(inputBookButton);
         currentUserPanel.add(inputAuthorButton);
         currentUserPanel.add(inputReviewButton);
+        currentUserPanel.add(inputAuthorToBookButton);
+        currentUserPanel.add(logOutButton);
 
         userFrame.add(currentUserPanel);
         userFrame.setVisible(true);
 
+        // Add action listeners for each button
         viewBooksButton.addActionListener(e -> displayBooks(books));
         viewAuthorsButton.addActionListener(e -> displayAuthors(authors));
         viewReviewsButton.addActionListener(e -> displayReviews(reviews));
-        inputBookButton.addActionListener(e -> inputBook(books));
-        inputAuthorButton.addActionListener(e -> inputAuthor(authors));
-        inputReviewButton.addActionListener(e -> inputReview(reviews));
+        inputBookButton.addActionListener(e -> {
+            try {
+                inputBook(books);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        inputAuthorButton.addActionListener(e -> {
+            try {
+                inputAuthor(authors);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        inputReviewButton.addActionListener(e -> {
+            try {
+                inputReview(reviews, getUser);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        inputAuthorToBookButton.addActionListener(e -> {
+            try {
+                inputAuthorToBook(books, authors);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        // Logout button logic
+        logOutButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    userFrame,
+                    "Are you sure you want to log out?",
+                    "Logout Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                if (logoutAction != null) {
+                    logoutAction.run();
+                }
+                userFrame.dispose();
+            }
+        });
     }
 
     private void displayBooks(List<Book> books) {
@@ -112,7 +173,7 @@ public class UserView {
         } else {
             for (Review review : reviews) {
                 JPanel reviewCard = new JPanel(new BorderLayout());
-                reviewCard.setBorder(BorderFactory.createTitledBorder("Book: " + review.getBook().getTitle()));
+                reviewCard.setBorder(BorderFactory.createTitledBorder("Book: " + review.getBookISBN()));
 
                 String reviewDetails = String.format(
                         "Reviewer: %s\nRating: %d/5\nReview:\n%s\n",
@@ -134,7 +195,7 @@ public class UserView {
         reviewFrame.setVisible(true);
     }
 
-    private void inputBook(List<Book> books) {
+    private Book inputBook(List<Book> books) throws SQLException {
         JPanel inputBookData = new JPanel(new GridLayout(4, 2));
         inputBookData.add(new JLabel("Title: "));
         JTextField title = new JTextField();
@@ -150,12 +211,14 @@ public class UserView {
         inputBookData.add(ISBN);
 
         int bookData = JOptionPane.showConfirmDialog(null, inputBookData, "Insert Book", JOptionPane.OK_CANCEL_OPTION);
-        if (bookData == JOptionPane.OK_OPTION) {
 
+        if (bookData == JOptionPane.OK_OPTION) {
+            return bookController.createBook(title.getText(), null, genre.getText(), pages.getText(), ISBN.getText());
         }
+        else {return null;}
     }
 
-    private void inputAuthor(List<Author> authors) {
+    private Author inputAuthor(List<Author> authors) throws SQLException {
         JPanel inputAuthorData = new JPanel(new GridLayout(4, 2));
         inputAuthorData.add(new JLabel("First Name: "));
         JTextField firstName = new JTextField();
@@ -172,11 +235,12 @@ public class UserView {
 
         int authorData = JOptionPane.showConfirmDialog(null, inputAuthorData, "Insert Author", JOptionPane.OK_CANCEL_OPTION);
         if (authorData == JOptionPane.OK_OPTION) {
-
+            return authorController.createAuthor(firstName.getText(), lastName.getText(), birthDate.getText(), deathDate.getText());
         }
+        else {return null;}
     }
 
-    private void inputReview(List<Review> reviews) {
+    private Review inputReview(List<Review> reviews, Supplier<String> getUser) throws SQLException {
         JPanel inputReviewData = new JPanel(new GridLayout(3, 2));
         inputReviewData.add(new JLabel("Book ISBN: "));
         JTextField ISBN = new JTextField();
@@ -191,7 +255,47 @@ public class UserView {
 
         int reviewData = JOptionPane.showConfirmDialog(null, inputReviewData, "Write a review", JOptionPane.OK_CANCEL_OPTION);
         if (reviewData == JOptionPane.OK_OPTION) {
+            return reviewController.createReview(ISBN.getText(),  (String) selectRating.getSelectedItem(), getUser.get(), reviewText.getText() );
+        }
+        else { return null;}
+    }
 
+    private void inputAuthorToBook(List<Book> books, List<Author> authors) throws SQLException {
+        JPanel inputAuthorToBook = new JPanel(new GridLayout(3, 2));
+
+        inputAuthorToBook.add(new JLabel("Select a Book:"));
+        JComboBox<Book> bookDropdown = new JComboBox<>(books.toArray(new Book[0]));
+        bookDropdown.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                if (value instanceof Book) {
+                    value = ((Book) value).getTitle();
+                }
+                return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            }
+        });
+        inputAuthorToBook.add(bookDropdown);
+
+        inputAuthorToBook.add(new JLabel("Select an Author:"));
+        JComboBox<Author> authorDropdown = new JComboBox<>(authors.toArray(new Author[0]));
+        authorDropdown.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                if (value instanceof Author) {
+                    value = ((Author) value).getFirstName() + " " + ((Author) value).getLastName();
+                }
+                return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            }
+        });
+        inputAuthorToBook.add(authorDropdown);
+
+        int result = JOptionPane.showConfirmDialog(null, inputAuthorToBook, "Assign Author to Book", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+            Book selectedBook = (Book) bookDropdown.getSelectedItem();
+            Author selectedAuthor = (Author) authorDropdown.getSelectedItem();
+            bookController.assignAuthorToBook(selectedBook.getISBN(), selectedAuthor.getAuthorID());
         }
     }
+
 }

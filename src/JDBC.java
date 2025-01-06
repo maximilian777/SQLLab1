@@ -34,15 +34,6 @@ public class JDBC {
             System.out.println("Access denied! Please check if you input your credentials correctly.");
         } catch (ClassNotFoundException | InterruptedException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                if (con != null) {
-                    con.close();
-                    System.out.println("Connection closed.");
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

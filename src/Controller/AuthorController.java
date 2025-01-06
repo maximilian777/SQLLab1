@@ -20,6 +20,12 @@ public class AuthorController {
         return queryLogic.getAuthors();
     }
 
+    public Author createAuthor(String firstName, String lastname, String birthDate, String deathDate) throws SQLException {
+        Author author = new Author(firstName, lastname, birthDate, deathDate);
+        queryLogic.insertToAuthors(author);
+        return author;
+    }
+
     public String getFirstName(Author author) {
         return author.getFirstName();
     }

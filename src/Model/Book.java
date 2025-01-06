@@ -7,18 +7,18 @@ public class Book {
     private String title;
     private List<Author> authors;
     private String genre;
-    private int pages;
+    private String pages;
     private String ISBN;
 
     Book() {
         this.title = "";
         this.authors = new ArrayList<Author>();
         this.genre = "";
-        this.pages = 0;
+        this.pages = "0";
         this.ISBN = "";
     }
 
-    public Book(String title, List<Author> authors, String genre, int pages, String ISBN) {
+    public Book(String title, List<Author> authors, String genre, String pages, String ISBN) {
         this.title = title;
         this.authors = new ArrayList<Author>();
         this.genre = genre;
@@ -50,11 +50,11 @@ public class Book {
         this.genre = genre;
     }
 
-    public int getPages() {
+    public String getPages() {
         return pages;
     }
 
-    public void setPages(int pages) {
+    public void setPages(String pages) {
         this.pages = pages;
     }
 

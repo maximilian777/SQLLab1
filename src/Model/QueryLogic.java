@@ -50,7 +50,7 @@ public class QueryLogic implements QL_Interface {
                 book.setISBN(rs.getString("ISBN"));
                 book.setTitle(rs.getString("title"));
                 book.setGenre(rs.getString("genre"));
-                book.setPages(rs.getInt("pages"));
+                book.setPages(rs.getString("pages"));
                 book.setAuthors(selectAuthorsForBook(book.getISBN()));
                 books.add(book);
             }
@@ -89,10 +89,10 @@ public class QueryLogic implements QL_Interface {
                 Review review = new Review();
                 for (Book book : books) {
                     if (book.getISBN() == rs.getString("ISBN")) {
-                        review.setBook(book);
+                        review.setBookISBN(book.getISBN());
                     }
                 }
-                review.setRating(rs.getInt("rating"));
+                review.setRating(rs.getString("rating"));
                 for (User user : users) {
                     if (user.getUsername().equals(rs.getString("username"))) {
                         review.setReviewer(user);
@@ -105,18 +105,33 @@ public class QueryLogic implements QL_Interface {
         }
     }
 
-    public void insertToAuthors(String firstName, String lastName, String birthDate) throws SQLException {
-        String query = "INSERT TO T_Author VALUES (?, ?, ?, ?)";
+    public void insertToAuthors(Author author) throws SQLException {
+        String query = "INSERT INTO T_Author (firstName, lastName, birthDate, deathDate) VALUES (?, ?, ?, ?)";
         PreparedStatement ps = null;
+        ResultSet generatedKeys = null;
         try {
             con.setAutoCommit(false);
-            ps = con.prepareStatement(query);
-            ps.setString(1, firstName);
-            ps.setString(2, lastName);
-            ps.setString(3, birthDate);
+            ps = con.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+            ps.setString(1, author.getFirstName());
+            ps.setString(2, author.getLastName());
+            ps.setString(3, author.getBirthDate());
+
+            if (author.getDeathDate() == null || author.getDeathDate().isEmpty()) {
+                ps.setNull(4, java.sql.Types.DATE);
+            } else {
+                ps.setString(4, author.getDeathDate());
+            }
+
             int res = ps.executeUpdate();
+
+            generatedKeys = ps.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                String authorID = generatedKeys.getString(1);
+                author.setAuthorID(authorID);
+            }
+
             con.commit();
-            System.out.println(res + " records inserted");
+            System.out.println(res + " records inserted. Author ID: " + author.getAuthorID());
         } catch (Exception e) {
             if (con != null) {
                 con.rollback();
@@ -126,30 +141,8 @@ public class QueryLogic implements QL_Interface {
             if (ps != null) {
                 ps.close();
             }
-            con.setAutoCommit(true);
-        }
-    }
-
-    public void insertToAuthors(String firstName, String lastName, String birthDate, String deathDate) throws SQLException {
-        String query = "INSERT INTO T_Author VALUES (?, ?, ?, ?)";
-        PreparedStatement ps = null;
-        try {
-            con.setAutoCommit(false);
-            ps = con.prepareStatement(query);
-            ps.setString(1, firstName);
-            ps.setString(2, lastName);
-            ps.setString(3, birthDate);
-            ps.setString(4, deathDate);
-            int res = ps.executeUpdate();
-            con.commit();
-            System.out.println(res + " records inserted");
-        } catch (Exception e) {
-            if (con != null) {
-                con.rollback();
-            }
-        } finally {
-            if (ps != null) {
-                ps.close();
+            if (generatedKeys != null) {
+                generatedKeys.close();
             }
             con.setAutoCommit(true);
         }
@@ -164,7 +157,7 @@ public class QueryLogic implements QL_Interface {
             ps.setString(1, book.getISBN());
             ps.setString(2, book.getTitle());
             ps.setString(3, book.getGenre());
-            ps.setInt(4, book.getPages());
+            ps.setString(4, book.getPages());
             int res = ps.executeUpdate();
             con.commit();
             System.out.println(res + " records inserted");
@@ -182,6 +175,7 @@ public class QueryLogic implements QL_Interface {
         for (Author author : book.getAuthors()) {
             bookAuthors(book.getISBN(), author.getAuthorID());
         }
+
     }
 
     public void bookAuthors(String ISBN, String a_id) throws SQLException {
@@ -238,7 +232,7 @@ public class QueryLogic implements QL_Interface {
             PreparedStatement ps = con.prepareStatement(query);
             ps.setString(1, newBook.getTitle());
             ps.setString(2, newBook.getGenre());
-            ps.setInt(3, newBook.getPages());
+            ps.setString(3, newBook.getPages());
             ps.setString(4, oldBook.getISBN());
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -253,26 +247,22 @@ public class QueryLogic implements QL_Interface {
         try {
             con.setAutoCommit(false);
             PreparedStatement ps = con.prepareStatement(query);
-            ps.setInt(1, newReview.getRating());
+            ps.setString(1, newReview.getRating());
             ps.setString(2, newReview.getReviewText());
             ps.setString(3, newReview.getReviewer().getUsername());
-            ps.setString(4, oldReview.getBook().getISBN());
-        } catch (Exception e) {
+            ps.setString(4, oldReview.getBookISBN());
+        }
+        catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
+        }
+        finally {
             con.setAutoCommit(true);
         }
     }
 
-    public List<Book> getBooks() {
-        return books;
-    }
+    public List<Book> getBooks() {return books;}
 
-    public List<Author> getAuthors() {
-        return authors;
-    }
+    public List<Author> getAuthors() {return authors;}
 
-    public List<Review> getReviews() {
-        return reviews;
-    }
+    public List<Review> getReviews() {return reviews;}
 }

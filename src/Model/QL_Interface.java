@@ -8,8 +8,7 @@ public interface QL_Interface {
     void selectAllFromBook() throws SQLException;
     List<Author> selectAuthorsForBook(String ISBN) throws SQLException;
     void selectAllFromReview() throws SQLException;
-    void insertToAuthors(String firstName, String lastName, String birthDate) throws SQLException;
-    void insertToAuthors(String firstName, String lastName, String birthDate, String deathDate) throws SQLException;
+    void insertToAuthors(Author author) throws SQLException;
     void insertToBooks(Book book) throws SQLException;
     void bookAuthors(String ISBN, String a_id) throws SQLException;
     void insertToReviews(String ISBN);

@@ -21,6 +21,16 @@ public class BookController {
         return queryLogic.getBooks();
     }
 
+    public Book createBook(String title, List<Author> authors, String genre, String pages, String ISBN) throws SQLException {
+        Book book = new Book(title, authors, genre, pages, ISBN);
+        queryLogic.insertToBooks(book);
+        return book;
+    }
+
+    public void assignAuthorToBook(String ISBN, String authorID) throws SQLException {
+        queryLogic.bookAuthors(ISBN, authorID);
+    }
+
     public String getTitle(Book book) {
         return book.getTitle();
     }
@@ -29,7 +39,7 @@ public class BookController {
         return book.getGenre();
     }
 
-    public int getPages(Book book) {
+    public String getPages(Book book) {
         return book.getPages();
     }
 

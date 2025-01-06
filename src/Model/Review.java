@@ -1,37 +1,38 @@
 package Model;
 
 public class Review {
-    private Book book;
-    private int rating;
+    private String ISBN;
+    private String rating;
     private User reviewer;
     private String reviewText;
 
     Review() {
-        this.book = null;
-        this.rating = 0;
+        this.ISBN = null;
+        this.rating = "0";
         this.reviewer = null;
     }
 
-    Review(Book book, int Rating, User reviewer, String reviewText) {
-        this.book = book;
+    Review(String ISBN, String rating, User reviewer, String reviewText) {
+        this.ISBN = ISBN;
         this.rating = rating;
         this.reviewer = reviewer;
         this.reviewText = reviewText;
     }
 
-    public Book getBook() {
-        return book;
+
+    public String getBookISBN() {
+        return ISBN;
     }
 
-    public void setBook(Book book) {
-        this.book = book;
+    public void setBookISBN(String ISBN) {
+        this.ISBN = ISBN;
     }
 
-    public int getRating() {
+    public String getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(String rating) {
         this.rating = rating;
     }
 
