@@ -20,7 +20,7 @@ public class AuthorController {
         return queryLogic.getAuthors();
     }
 
-    public Author createAuthor(String firstName, String lastname, String birthDate, String deathDate) throws SQLException {
+    public Author createAuthor(String firstName, String lastname, java.sql.Date birthDate, java.sql.Date deathDate) throws SQLException {
         Author author = new Author(firstName, lastname, birthDate, deathDate);
         queryLogic.insertToAuthors(author);
         return author;
@@ -34,11 +34,14 @@ public class AuthorController {
         return author.getLastName();
     }
 
-    public String getBirthDate(Author author) {
+    public java.sql.Date getBirthDate(Author author) {
         return author.getBirthDate();
     }
 
-    public String getDeathDate(Author author) {
-        return author.getDeathDate() != null ? author.getDeathDate() : "N/A";
+    public java.sql.Date getDeathDate(Author author) {
+        if (author.getDeathDate() == null) {
+            System.out.println("Death date is null");
+        }
+        return author.getDeathDate();
     }
 }

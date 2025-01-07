@@ -4,14 +4,14 @@ public class Author {
     private String authorID;
     private String firstName;
     private String lastName;
-    private String birthDate;
-    private String deathDate;
+    private java.sql.Date birthDate;
+    private java.sql.Date deathDate;
 
     Author() {
 
     }
 
-    public Author(String firstName, String lastname, String birthDate, String deathDate) {
+    public Author(String firstName, String lastname, java.sql.Date birthDate, java.sql.Date deathDate) {
         this.firstName = firstName;
         this.lastName = lastname;
         this.birthDate = birthDate;
@@ -41,19 +41,19 @@ public class Author {
         this.lastName = lastName;
     }
 
-    public String getBirthDate() {
+    public java.sql.Date getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(String birthDate) {
+    public void setBirthDate(java.sql.Date birthDate) {
         this.birthDate = birthDate;
     }
 
-    public String getDeathDate() {
+    public java.sql.Date getDeathDate() {
         return deathDate;
     }
 
-    public void setDeathDate(String deathDate) {
+    public void setDeathDate(java.sql.Date deathDate) {
         this.deathDate = deathDate;
     }
 }

@@ -21,7 +21,6 @@ public class QueryLogic implements QL_Interface {
 
 
     public void selectAllFromAuthor() throws SQLException {
-        //do we need 'try' here if we're not catching?
         try (Statement stmt = con.createStatement()) {
             ResultSet rs = stmt.executeQuery("SELECT * FROM T_Author");
 
@@ -30,30 +29,27 @@ public class QueryLogic implements QL_Interface {
                 author.setAuthorID(rs.getString("aID"));
                 author.setFirstName(rs.getString("firstName"));
                 author.setLastName(rs.getString("lastName"));
-                author.setBirthDate(rs.getString("birthDate"));
+                author.setBirthDate(rs.getDate("birthDate"));
                 if (rs.getString("deathDate") != null) {
-                    author.setDeathDate(rs.getString("deathDate"));
+                    author.setDeathDate(rs.getDate("deathDate"));
                 }
                 authors.add(author);
             }
-        } catch (Exception e) {
-            //ya
+        } catch (SQLException e) {
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
     }
 
     public void selectAllFromBook() throws SQLException {
         try (Statement stmt = con.createStatement()) {
             ResultSet rs = stmt.executeQuery("SELECT * FROM T_Book");
-
-            while (rs.next()) {
-                Book book = new Book();
-                book.setISBN(rs.getString("ISBN"));
-                book.setTitle(rs.getString("title"));
-                book.setGenre(rs.getString("genre"));
-                book.setPages(rs.getString("pages"));
-                book.setAuthors(selectAuthorsForBook(book.getISBN()));
-                books.add(book);
-            }
+            addBooksToList(rs);
+        } catch (SQLException e) {
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
     }
 
@@ -65,9 +61,11 @@ public class QueryLogic implements QL_Interface {
                 "JOIN T_Book_Authors ba ON a.aID = ba.author_aID " +
                 "WHERE ba.book_ISBN = ?";
 
-        try (PreparedStatement stmt = con.prepareStatement(query)) {
-            stmt.setString(1, ISBN);
-            ResultSet rs = stmt.executeQuery();
+        PreparedStatement ps = null;
+        try {
+            ps = con.prepareStatement(query);
+            ps.setString(1, ISBN);
+            ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 Author author = new Author();
@@ -75,6 +73,14 @@ public class QueryLogic implements QL_Interface {
                 author.setFirstName(rs.getString("firstName"));
                 author.setLastName(rs.getString("lastName"));
                 authorsForBook.add(author);
+            }
+        } catch (SQLException e) {
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (ps != null) {
+                ps.close();
             }
         }
 
@@ -102,49 +108,85 @@ public class QueryLogic implements QL_Interface {
 
                 reviews.add(review);
             }
+        } catch (SQLException e) {
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
     }
+
+//    public void insertToAuthors(Author author) throws SQLException {
+//        String query = "INSERT INTO T_Author (firstName, lastName, birthDate, deathDate) VALUES (?, ?, ?, ?)";
+//        PreparedStatement ps = null;
+//        ResultSet generatedKeys = null;
+//        try {
+//            con.setAutoCommit(false);
+//            ps = con.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+//            ps.setString(1, author.getFirstName());
+//            ps.setString(2, author.getLastName());
+//            ps.setString(3, author.getBirthDate());
+//
+//            if (author.getDeathDate() == null || author.getDeathDate().isEmpty()) {
+//                ps.setNull(4, java.sql.Types.DATE);
+//            } else {
+//                ps.setString(4, author.getDeathDate());
+//            }
+//
+//            int res = ps.executeUpdate();
+//
+//            generatedKeys = ps.getGeneratedKeys();
+//            if (generatedKeys.next()) {
+//                String authorID = generatedKeys.getString(1);
+//                author.setAuthorID(authorID);
+//            }
+//
+//            con.commit();
+//            System.out.println(res + " records inserted. Author ID: " + author.getAuthorID());
+//        } catch (Exception e) {
+//            if (con != null) {
+//                con.rollback();
+//            }
+//            throw e;
+//        } finally {
+//            if (ps != null) {
+//                ps.close();
+//            }
+//            if (generatedKeys != null) {
+//                generatedKeys.close();
+//            }
+//            con.setAutoCommit(true);
+//        }
+//    }
 
     public void insertToAuthors(Author author) throws SQLException {
         String query = "INSERT INTO T_Author (firstName, lastName, birthDate, deathDate) VALUES (?, ?, ?, ?)";
         PreparedStatement ps = null;
-        ResultSet generatedKeys = null;
         try {
-            con.setAutoCommit(false);
-            ps = con.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+            ps = con.prepareStatement(query);
             ps.setString(1, author.getFirstName());
             ps.setString(2, author.getLastName());
-            ps.setString(3, author.getBirthDate());
-
-            if (author.getDeathDate() == null || author.getDeathDate().isEmpty()) {
-                ps.setNull(4, java.sql.Types.DATE);
+            ps.setDate(3, author.getBirthDate()); // Assuming LocalDate
+            if (author.getDeathDate() != null) {
+                ps.setDate(4, author.getDeathDate());
             } else {
-                ps.setString(4, author.getDeathDate());
+                ps.setNull(4, java.sql.Types.DATE);
             }
-
-            int res = ps.executeUpdate();
-
-            generatedKeys = ps.getGeneratedKeys();
-            if (generatedKeys.next()) {
-                String authorID = generatedKeys.getString(1);
-                author.setAuthorID(authorID);
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows > 0) {
+                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        author.setAuthorID(generatedKeys.getString(1));
+                    }
+                }
             }
-
-            con.commit();
-            System.out.println(res + " records inserted. Author ID: " + author.getAuthorID());
-        } catch (Exception e) {
-            if (con != null) {
-                con.rollback();
-            }
+        } catch (SQLException e) {
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
             throw e;
         } finally {
             if (ps != null) {
                 ps.close();
             }
-            if (generatedKeys != null) {
-                generatedKeys.close();
-            }
-            con.setAutoCommit(true);
         }
     }
 
@@ -165,6 +207,9 @@ public class QueryLogic implements QL_Interface {
             if (con != null) {
                 con.rollback();
             }
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         } finally {
             if (ps != null) {
                 ps.close();
@@ -180,63 +225,121 @@ public class QueryLogic implements QL_Interface {
 
     public void bookAuthors(String ISBN, String a_id) throws SQLException {
         String query = "INSERT INTO T_Book_Authors (book_ISBN, author_aID) VALUES (?, ?)";
-        PreparedStatement ps = con.prepareStatement(query);
-        ps.setString(1, ISBN);
-        ps.setString(2, a_id);
-        int res = ps.executeUpdate();
-        System.out.println(res + " records inserted");
+        PreparedStatement ps = null;
+        try {
+            con.setAutoCommit(false);
+            ps = con.prepareStatement(query);
+            ps.setString(1, ISBN);
+            ps.setString(2, a_id);
+            int res = ps.executeUpdate();
+            System.out.println(res + " records inserted");
+        } catch (SQLException e) {
+            if (con != null) {
+                con.rollback();
+            }
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (ps != null) {
+                ps.close();
+            }
+            con.setAutoCommit(true);
+        }
     }
 
-    //users array needed I think idk how to do this
-    public void insertToReviews(String ISBN) {
+    public void insertToReviews(String ISBN, int rating, String revText, String user) throws SQLException {
+        String query = "INSERT INTO T_Reviews (book_ISBN, rating, reviewText, user) VALUES (?, ?, ?, ?)";
+        PreparedStatement ps = null;
+        try {
+            con.setAutoCommit(false);
+            ps = con.prepareStatement(query);
+            ps.setString(1, ISBN);
+            ps.setInt(2, rating);
+            ps.setString(3, revText);
+            ps.setString(4, user);
+            int res = ps.executeUpdate();
+            System.out.println(res + " records inserted");
+        } catch (Exception e) {
+            if (con != null) {
+                con.rollback();
+            }
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (ps != null) {
+                ps.close();
+            }
+            con.setAutoCommit(true);
+        }
 
     }
 
     public void updateAuthor(Author oldAuthor, Author newAuthor) throws SQLException {
         String query;
         if (newAuthor.getDeathDate() != null) {
-            query = "UPDATE T_Authors SET firstName = ?, lastName = ?, birthDate = ?, deathDate = ? WHERE firstName ? AND lastName ? AND birthDate ?";
+            query = "UPDATE T_Authors SET firstName = ?, lastName = ?, birthDate = ?, deathDate = ? WHERE firstName = ? AND lastName = ? AND birthDate = ?";
+
         } else {
-            query = "UPDATE T_Authors SET firstName = ?, lastName = ?, birthDate = ? WHERE firstName ? AND lastName ? AND birthDate ?";
+            query = "UPDATE T_Authors SET firstName = ?, lastName = ?, birthDate = ? WHERE firstName = ? AND lastName = ? AND birthDate = ?";
+
         }
+        PreparedStatement ps = null;
         try {
             con.setAutoCommit(false);
-            PreparedStatement ps = con.prepareStatement(query);
+            ps = con.prepareStatement(query);
             if (newAuthor.getDeathDate() != null) {
                 ps.setString(1, newAuthor.getFirstName());
                 ps.setString(2, newAuthor.getLastName());
-                ps.setString(3, newAuthor.getBirthDate());
-                ps.setString(4, newAuthor.getDeathDate());
+                ps.setDate(3, newAuthor.getBirthDate());
+                ps.setDate(4, newAuthor.getDeathDate());
 
                 ps.setString(5, oldAuthor.getFirstName());
                 ps.setString(6, oldAuthor.getLastName());
-                ps.setString(7, oldAuthor.getBirthDate());
+                ps.setDate(7, oldAuthor.getBirthDate());
 
                 if (oldAuthor.getDeathDate() != null) {
-                    ps.setString(8, oldAuthor.getDeathDate());
+                    ps.setDate(8, oldAuthor.getDeathDate());
                 }
             }
-
-
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (con != null) {
+                con.rollback();
+            }
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         } finally {
+            if (ps != null) {
+                ps.close();
+            }
             con.setAutoCommit(true);
         }
     }
 
     public void updateBook(Book newBook, Book oldBook) throws SQLException {
         String query = "UPDATE T_Books SET title = ?, genre = ?, pages = ? WHERE ISBN = ?";
+        PreparedStatement ps = null;
         try {
             con.setAutoCommit(false);
-            PreparedStatement ps = con.prepareStatement(query);
+            ps = con.prepareStatement(query);
             ps.setString(1, newBook.getTitle());
             ps.setString(2, newBook.getGenre());
             ps.setString(3, newBook.getPages());
             ps.setString(4, oldBook.getISBN());
+            ps.executeUpdate();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (con != null) {
+                con.rollback();
+            }
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         } finally {
+            if (ps != null) {
+                ps.close();
+            }
             con.setAutoCommit(true);
         }
 
@@ -244,19 +347,146 @@ public class QueryLogic implements QL_Interface {
 
     public void updateReview(Review oldReview, Review newReview) throws SQLException {
         String query = "UPDATE T_Reviews SET rating = ?, reviewText = ?, user = ? WHERE ISBN = ?";
+        PreparedStatement ps = null;
         try {
             con.setAutoCommit(false);
-            PreparedStatement ps = con.prepareStatement(query);
+            ps = con.prepareStatement(query);
             ps.setString(1, newReview.getRating());
             ps.setString(2, newReview.getReviewText());
             ps.setString(3, newReview.getReviewer().getUsername());
-            ps.setString(4, oldReview.getBookISBN());
+            ps.executeUpdate();
         }
         catch (Exception e) {
-            throw new RuntimeException(e);
+            if (con != null) {
+                con.rollback();
+            }
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
         }
         finally {
+            if (ps != null) {
+                ps.close();
+            }
             con.setAutoCommit(true);
+        }
+    }
+
+    public void searchBookByTitle(String title) throws SQLException {
+        String query = "SELECT * FROM T_Books WHERE title LIKE ?";
+        PreparedStatement ps = null;
+        try {
+            ps = con.prepareStatement(query);
+            ps.setString(1, "%" + title + "%");
+            ResultSet rs = ps.executeQuery();
+            addBooksToList(rs);
+        } catch (Exception e) {
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    public void searchBookByISBN(String ISBN) throws SQLException {
+        String query = "SELECT * FROM T_Books WHERE ISBN = ?";
+        PreparedStatement ps = null;
+        try {
+            ps = con.prepareStatement(query);
+            ps.setString(1, "%" + ISBN + "%");
+            ResultSet rs = ps.executeQuery();
+            addBooksToList(rs);
+        } catch (Exception e) {
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    public void searchBookByAuthor(Author author) throws SQLException {
+        String query = "SELECT * FROM T_Books WHERE aFirstName = ? AND lastName = ?";
+        PreparedStatement ps = null;
+        try {
+            ps = con.prepareStatement(query);
+            ps.setString(1, "%" + author.getFirstName() + "%");
+            ps.setString(2, "%" + author.getLastName() + "%");
+            ResultSet rs = ps.executeQuery();
+            addBooksToList(rs);
+        } catch (Exception e) {
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    public void searchBookByRating(int rating) throws SQLException {
+        String query = "SELECT * FROM T_Books WHERE rating = ?";
+        PreparedStatement ps = null;
+        try {
+            ps = con.prepareStatement(query);
+            ps.setString(1, "%" + rating + "%");
+            ResultSet rs = ps.executeQuery();
+            addBooksToList(rs);
+        } catch (Exception e) {
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    public void searchBookByGenre(String genre) throws SQLException {
+        String query = "SELECT * FROM T_Books WHERE genre = ?";
+        PreparedStatement ps = null;
+        try {
+            ps = con.prepareStatement(query);
+            ps.setString(1, "%" + genre + "%");
+            ResultSet rs = ps.executeQuery();
+            addBooksToList(rs);
+        } catch (Exception e) {
+            System.err.println("SQL Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        } finally {
+            if (ps != null) {
+                ps.close();
+            }
+        }
+    }
+
+    private void addBooksToList(ResultSet rs) throws SQLException {
+        while (rs.next()) {
+            Book book = new Book();
+            book.setISBN(rs.getString("ISBN"));
+            book.setTitle(rs.getString("title"));
+            book.setGenre(rs.getString("genre"));
+            book.setPages(rs.getString("pages"));
+            book.setAuthors(selectAuthorsForBook(book.getISBN()));
+
+            int count = 0;
+            for (Book book1 : books) {
+                if (book1.getISBN().equals(book.getISBN())) {
+                    count++;
+                }
+            }
+            if (count <= 0) {
+                books.add(book);
+            }
+
         }
     }
 

@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 public class Controller {
 
     private Connection con;
-    private QueryLogic queryLogic;
+    private QL_Interface queryLogic;
     private UserLogic userLogic;
     private BookController bookController;
     private AuthorController authorController;
@@ -32,15 +32,22 @@ public class Controller {
     }
 
     public void startQuerying() throws SQLException, InterruptedException {
+        System.out.println("beforethread");
         ExecutorService execute = Executors.newSingleThreadExecutor();
+        System.out.println("after thread");
         try {
+            System.out.println("try");
             execute.submit(() -> {
                 try {
+                    System.out.println("second try");
                     List<Book> books = bookController.getAllBooks();
                     List<Author> authors = authorController.getAllAuthors();
                     List<Review> reviews = reviewController.getAllReviews();
+                    System.out.println("help");
                     userView.showUserProfile(books, authors, reviews, this::getCurrentUser);
+                    System.out.println("help1");
                 } catch (SQLException e) {
+                    System.out.println("error???");
                     throw new RuntimeException(e);
                 }
             });
