@@ -10,6 +10,7 @@ import Model.Review;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -36,6 +37,7 @@ public class UserView {
         JButton viewBooksButton = new JButton("View Books");
         JButton viewAuthorsButton = new JButton("View Authors");
         JButton viewReviewsButton = new JButton("View Reviews");
+        JButton search = new JButton("Search book");
         JButton inputBookButton = new JButton("Insert Book");
         JButton inputAuthorButton = new JButton("Insert Author");
         JButton inputReviewButton = new JButton("Write a Review");
@@ -45,6 +47,7 @@ public class UserView {
         currentUserPanel.add(viewBooksButton);
         currentUserPanel.add(viewAuthorsButton);
         currentUserPanel.add(viewReviewsButton);
+        currentUserPanel.add(search);
         currentUserPanel.add(inputBookButton);
         currentUserPanel.add(inputAuthorButton);
         currentUserPanel.add(inputReviewButton);
@@ -58,6 +61,14 @@ public class UserView {
         viewBooksButton.addActionListener(e -> displayBooks(books));
         viewAuthorsButton.addActionListener(e -> displayAuthors(authors));
         viewReviewsButton.addActionListener(e -> displayReviews(reviews));
+        search.addActionListener(e -> {
+            try {
+                search();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
         inputBookButton.addActionListener(e -> {
             try {
                 inputBook(books);
@@ -87,7 +98,6 @@ public class UserView {
             }
         });
 
-        // Logout button logic
         logOutButton.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
                     userFrame,
@@ -229,15 +239,31 @@ public class UserView {
         inputAuthorData.add(new JLabel("Birth Date: "));
         JTextField birthDate = new JTextField();
         inputAuthorData.add(birthDate);
-        inputAuthorData.add(new JLabel("Death Date"));
+        inputAuthorData.add(new JLabel("Death Date:"));
         JTextField deathDate = new JTextField();
         inputAuthorData.add(deathDate);
 
         int authorData = JOptionPane.showConfirmDialog(null, inputAuthorData, "Insert Author", JOptionPane.OK_CANCEL_OPTION);
         if (authorData == JOptionPane.OK_OPTION) {
-            return authorController.createAuthor(firstName.getText(), lastName.getText(), birthDate.getText(), deathDate.getText());
+            try {
+                java.sql.Date parsedBirthDate = java.sql.Date.valueOf(birthDate.getText());
+                java.sql.Date parsedDeathDate = null;
+                if (!deathDate.getText().trim().isEmpty()) {
+                    parsedDeathDate = java.sql.Date.valueOf(deathDate.getText());
+                }
+                return authorController.createAuthor(
+                        firstName.getText(),
+                        lastName.getText(),
+                        parsedBirthDate,
+                        parsedDeathDate
+                );
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(null, "Invalid date format! Please use yyyy-MM-dd.", "Error", JOptionPane.ERROR_MESSAGE);
+                return null;
+            }
+        } else {
+            return null;
         }
-        else {return null;}
     }
 
     private Review inputReview(List<Review> reviews, Supplier<String> getUser) throws SQLException {
@@ -298,4 +324,72 @@ public class UserView {
         }
     }
 
+    private void search() throws SQLException {
+        List<Book> searchedItems = new ArrayList<>();
+        JComboBox<String> searchOptions = new JComboBox<>(new String[]{"Title", "Author", "ISBN", "Genre", "Review Score"});
+        JPanel searchPanel = new JPanel();
+        JTextField inputField = new JTextField();
+        JTextField firstNameField = new JTextField();
+        JTextField lastNameField = new JTextField();
+
+        searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
+        searchPanel.add(new JLabel("Select Search Type:"));
+        searchPanel.add(searchOptions);
+        searchPanel.add(new JLabel("Search Input:"));
+        searchPanel.add(inputField);
+
+        // Action listener to dynamically update input fields
+        searchOptions.addActionListener(e -> {
+            String selected = (String) searchOptions.getSelectedItem();
+            searchPanel.removeAll(); // Clear the panel
+            searchPanel.add(new JLabel("Select Search Type:"));
+            searchPanel.add(searchOptions);
+
+            if ("Author".equals(selected)) {
+                searchPanel.add(new JLabel("First Name:"));
+                searchPanel.add(firstNameField);
+                searchPanel.add(new JLabel("Last Name:"));
+                searchPanel.add(lastNameField);
+            } else {
+                searchPanel.add(new JLabel("Search by " + selected.toLowerCase() + ":"));
+                searchPanel.add(inputField);
+            }
+
+            searchPanel.revalidate();
+            searchPanel.repaint();
+        });
+        
+        JScrollPane scrollPane = new JScrollPane(searchPanel);
+        scrollPane.setPreferredSize(new Dimension(400, 200));
+        int result = JOptionPane.showConfirmDialog(null, scrollPane, "Search", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String searchType = (String) searchOptions.getSelectedItem();
+            switch (searchType) {
+                case "Author":
+                    searchedItems = bookController.searchBookByAuthor(firstNameField.getText(), lastNameField.getText());
+                    break;
+                case "Title":
+                    searchedItems = bookController.searchBookByTitle(inputField.getText());
+                    break;
+                case "ISBN":
+                    searchedItems = bookController.searchBookByISBN(inputField.getText());
+                    break;
+                case "Genre":
+                    searchedItems = bookController.searchBookByGenre(inputField.getText());
+                    break;
+                case "Review Score":
+                    searchedItems = bookController.searchBookByRating(inputField.getText());
+                    break;
+                default:
+                    JOptionPane.showMessageDialog(null, "Invalid search type selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+            if (searchedItems.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No results found.", "Search Results", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                displayBooks(searchedItems);
+            }
+        }
+    }
 }

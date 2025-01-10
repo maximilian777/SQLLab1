@@ -179,6 +179,7 @@ public class QueryLogic implements QL_Interface {
                     }
                 }
             }
+            authors.add(author);
         } catch (SQLException e) {
             System.err.println("SQL Exception occurred: " + e.getMessage());
             e.printStackTrace();
@@ -203,6 +204,7 @@ public class QueryLogic implements QL_Interface {
             int res = ps.executeUpdate();
             con.commit();
             System.out.println(res + " records inserted");
+            books.add(book);
         } catch (Exception e) {
             if (con != null) {
                 con.rollback();
@@ -260,6 +262,7 @@ public class QueryLogic implements QL_Interface {
             ps.setString(4, user);
             int res = ps.executeUpdate();
             System.out.println(res + " records inserted");
+            //reviews.add();
         } catch (Exception e) {
             if (con != null) {
                 con.rollback();

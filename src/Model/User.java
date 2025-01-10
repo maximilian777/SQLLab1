@@ -54,4 +54,13 @@ public class User {
     public void setAccountCreationDate(String accountCreationDate) {
         this.accountCreationDate = accountCreationDate;
     }
+
+    public static User getUserByUsername(String username, List<User> users) {
+        for (User user : users) {
+            if (user.getUsername().equalsIgnoreCase(username)) {
+                return user;
+            }
+        }
+        return null;
+    }
 }
