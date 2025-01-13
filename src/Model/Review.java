@@ -2,17 +2,17 @@ package Model;
 
 public class Review {
     private String ISBN;
-    private String rating;
-    private User reviewer;
+    private int rating;
+    private String reviewer;
     private String reviewText;
 
-    Review() {
+    public Review() {
         this.ISBN = null;
-        this.rating = "0";
+        this.rating = 0;
         this.reviewer = null;
     }
 
-    Review(String ISBN, String rating, User reviewer, String reviewText) {
+    public Review(String ISBN, int rating, String reviewer, String reviewText) {
         this.ISBN = ISBN;
         this.rating = rating;
         this.reviewer = reviewer;
@@ -28,19 +28,19 @@ public class Review {
         this.ISBN = ISBN;
     }
 
-    public String getRating() {
+    public int getRating() {
         return rating;
     }
 
-    public void setRating(String rating) {
+    public void setRating(int rating) {
         this.rating = rating;
     }
 
-    public User getReviewer() {
+    public String getReviewer() {
         return reviewer;
     }
 
-    public void setReviewer(User reviewer) {
+    public void setReviewer(String reviewer) {
         this.reviewer = reviewer;
     }
 

@@ -187,7 +187,7 @@ public class UserView {
 
                 String reviewDetails = String.format(
                         "Reviewer: %s\nRating: %d/5\nReview:\n%s\n",
-                        review.getReviewer().getUsername(),
+                        review.getReviewer(),
                         review.getRating(),
                         review.getReviewText()
                 );
@@ -281,7 +281,7 @@ public class UserView {
 
         int reviewData = JOptionPane.showConfirmDialog(null, inputReviewData, "Write a review", JOptionPane.OK_CANCEL_OPTION);
         if (reviewData == JOptionPane.OK_OPTION) {
-            return reviewController.createReview(ISBN.getText(),  (String) selectRating.getSelectedItem(), getUser.get(), reviewText.getText() );
+            return reviewController.createReview(ISBN.getText(), (int) selectRating.getSelectedItem(), getUser.get(), reviewText.getText() );
         }
         else { return null;}
     }
@@ -379,7 +379,7 @@ public class UserView {
                     searchedItems = bookController.searchBookByGenre(inputField.getText());
                     break;
                 case "Review Score":
-                    searchedItems = bookController.searchBookByRating(inputField.getText());
+                    searchedItems = bookController.searchBookByRating(Integer.parseInt(inputField.getText()));
                     break;
                 default:
                     JOptionPane.showMessageDialog(null, "Invalid search type selected.", "Error", JOptionPane.ERROR_MESSAGE);

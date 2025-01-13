@@ -94,18 +94,18 @@ public class QueryLogic implements QL_Interface {
             while (rs.next()) {
                 Review review = new Review();
                 for (Book book : books) {
-                    if (book.getISBN() == rs.getString("ISBN")) {
+                    if (book.getISBN().equals(rs.getString("ISBN"))) {
                         review.setBookISBN(book.getISBN());
                     }
                 }
-                review.setRating(rs.getString("rating"));
-                for (User user : users) {
-                    if (user.getUsername().equals(rs.getString("username"))) {
-                        review.setReviewer(user);
-                    }
+                review.setRating(rs.getInt("rating"));
+                review.setReviewer(rs.getString("username"));
+                Blob reviewBlob = rs.getBlob("reviewText");
+                if (reviewBlob != null) {
+                    review.setReviewText(new String(reviewBlob.getBytes(1, (int) reviewBlob.length())));
+                } else {
+                    review.setReviewText(null); // need to handle null Blob
                 }
-                review.setReviewText(rs.getString("reviewText"));
-
                 reviews.add(review);
             }
         } catch (SQLException e) {
@@ -114,49 +114,6 @@ public class QueryLogic implements QL_Interface {
             throw e;
         }
     }
-
-//    public void insertToAuthors(Author author) throws SQLException {
-//        String query = "INSERT INTO T_Author (firstName, lastName, birthDate, deathDate) VALUES (?, ?, ?, ?)";
-//        PreparedStatement ps = null;
-//        ResultSet generatedKeys = null;
-//        try {
-//            con.setAutoCommit(false);
-//            ps = con.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
-//            ps.setString(1, author.getFirstName());
-//            ps.setString(2, author.getLastName());
-//            ps.setString(3, author.getBirthDate());
-//
-//            if (author.getDeathDate() == null || author.getDeathDate().isEmpty()) {
-//                ps.setNull(4, java.sql.Types.DATE);
-//            } else {
-//                ps.setString(4, author.getDeathDate());
-//            }
-//
-//            int res = ps.executeUpdate();
-//
-//            generatedKeys = ps.getGeneratedKeys();
-//            if (generatedKeys.next()) {
-//                String authorID = generatedKeys.getString(1);
-//                author.setAuthorID(authorID);
-//            }
-//
-//            con.commit();
-//            System.out.println(res + " records inserted. Author ID: " + author.getAuthorID());
-//        } catch (Exception e) {
-//            if (con != null) {
-//                con.rollback();
-//            }
-//            throw e;
-//        } finally {
-//            if (ps != null) {
-//                ps.close();
-//            }
-//            if (generatedKeys != null) {
-//                generatedKeys.close();
-//            }
-//            con.setAutoCommit(true);
-//        }
-//    }
 
     public void insertToAuthors(Author author) throws SQLException {
         String query = "INSERT INTO T_Author (firstName, lastName, birthDate, deathDate) VALUES (?, ?, ?, ?)";
@@ -250,19 +207,22 @@ public class QueryLogic implements QL_Interface {
         }
     }
 
-    public void insertToReviews(String ISBN, int rating, String revText, String user) throws SQLException {
+    public void insertToReviews(Review review) throws SQLException {
         String query = "INSERT INTO T_Reviews (book_ISBN, rating, reviewText, user) VALUES (?, ?, ?, ?)";
         PreparedStatement ps = null;
         try {
             con.setAutoCommit(false);
             ps = con.prepareStatement(query);
-            ps.setString(1, ISBN);
-            ps.setInt(2, rating);
-            ps.setString(3, revText);
-            ps.setString(4, user);
+            ps.setString(1, review.getBookISBN());
+            ps.setInt(2, review.getRating());
+            if (review.getReviewText() != null) {
+                ps.setBlob(3, new javax.sql.rowset.serial.SerialBlob(review.getReviewText().getBytes()));
+            } else {
+                ps.setNull(3, java.sql.Types.BLOB);
+            }
+            ps.setString(4, review.getReviewer());
             int res = ps.executeUpdate();
             System.out.println(res + " records inserted");
-            //reviews.add();
         } catch (Exception e) {
             if (con != null) {
                 con.rollback();
@@ -354,9 +314,9 @@ public class QueryLogic implements QL_Interface {
         try {
             con.setAutoCommit(false);
             ps = con.prepareStatement(query);
-            ps.setString(1, newReview.getRating());
+            ps.setInt(1, newReview.getRating());
             ps.setString(2, newReview.getReviewText());
-            ps.setString(3, newReview.getReviewer().getUsername());
+            ps.setString(3, newReview.getReviewer());
             ps.executeUpdate();
         }
         catch (Exception e) {

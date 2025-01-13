@@ -23,11 +23,10 @@ public class JDBC {
             System.out.println("Connecting to database...");
             Class.forName("com.mysql.cj.jdbc.Driver");
             con = DriverManager.getConnection(server, user, pass);
-            System.out.println("Connected!");
+            System.out.println("Connected as " + user);
 
             Controller controller = new Controller(con);
-            controller.saveUserData(user, pass);
-
+            controller.saveCurrentUser(user);
             controller.startQuerying();
         } catch (SQLException e) {
             System.out.println(e.getMessage());

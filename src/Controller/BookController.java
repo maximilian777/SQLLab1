@@ -73,7 +73,7 @@ public class BookController {
                 .collect(Collectors.toList());
     }
 
-    public List<Book> searchBookByRating(String rating) throws SQLException {
+    public List<Book> searchBookByRating(int rating) throws SQLException {
         List<Book> booksWithMatchingRating = new ArrayList<>();
         if (queryLogic.getReviews().isEmpty()) {
             queryLogic.getReviews();
@@ -82,7 +82,7 @@ public class BookController {
             queryLogic.getBooks();
         }
         for (Review review : queryLogic.getReviews()) {
-            if (review.getRating().equalsIgnoreCase(rating)) {
+            if (review.getRating() == rating) {
                 String bookISBN = review.getBookISBN();
                 Book book = queryLogic.getBooks().stream()
                         .filter(b -> b.getISBN().equalsIgnoreCase(bookISBN))

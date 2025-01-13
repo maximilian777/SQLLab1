@@ -18,8 +18,9 @@ import java.util.List;
             return queryLogic.getReviews();
         }
 
-        public Review createReview(String ISBN, String rating, String user, String reviewText) throws SQLException {
-            queryLogic.selectAllFromReview();
+        public Review createReview(String ISBN, int rating, String user, String reviewText) throws SQLException {
+            Review review = new Review(ISBN, rating, user, reviewText);
+            queryLogic.insertToReviews(review);
             return (Review) queryLogic.getReviews();
         }
 
@@ -27,7 +28,7 @@ import java.util.List;
             queryLogic.updateReview(oldReview, newReview);
         }
 
-        public String getRating(Review review) {
+        public int getRating(Review review) {
             return review.getRating();
         }
 }

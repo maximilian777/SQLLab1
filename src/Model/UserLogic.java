@@ -28,9 +28,6 @@ public class UserLogic {
         }
     }
 
-    //should be locked behind root access, non-accessible for other
-    //also is there a way to save this data? maybe to the database??? we would need to create a new database for that tho
-    //and then insert to the database
     public void saveUserData(String username, String password) throws SQLException {
         for (User user : users) {
             if (!username.equals(user.getUsername())) {

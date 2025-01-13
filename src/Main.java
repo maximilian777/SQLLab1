@@ -13,7 +13,7 @@ public class Main {
             JDBC jdbc = new JDBC(inputs[0], inputs[1]);
             jdbc.connectToDB();
 
-            System.out.println("Do you want to continue? (y/n): ");
+            //this whole thing should look different I think
             choice = sc.next().charAt(0);
         }
     }

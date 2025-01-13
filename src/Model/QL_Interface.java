@@ -11,7 +11,7 @@ public interface QL_Interface {
     void insertToAuthors(Author author) throws SQLException;
     void insertToBooks(Book book) throws SQLException;
     void bookAuthors(String ISBN, String a_id) throws SQLException;
-    void insertToReviews(String ISBN, int rating, String revText, String user) throws SQLException;
+    void insertToReviews(Review review) throws SQLException;
     void updateAuthor(Author oldAuthor, Author newAuthor) throws SQLException;
     void updateBook(Book newBook, Book oldBook) throws SQLException;
     void updateReview(Review oldReview, Review newReview) throws SQLException;
