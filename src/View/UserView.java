@@ -57,7 +57,6 @@ public class UserView {
         userFrame.add(currentUserPanel);
         userFrame.setVisible(true);
 
-        // Add action listeners for each button
         viewBooksButton.addActionListener(e -> displayBooks(books));
         viewAuthorsButton.addActionListener(e -> displayAuthors(authors));
         viewReviewsButton.addActionListener(e -> displayReviews(reviews));
@@ -358,7 +357,7 @@ public class UserView {
             searchPanel.revalidate();
             searchPanel.repaint();
         });
-        
+
         JScrollPane scrollPane = new JScrollPane(searchPanel);
         scrollPane.setPreferredSize(new Dimension(400, 200));
         int result = JOptionPane.showConfirmDialog(null, scrollPane, "Search", JOptionPane.OK_CANCEL_OPTION);

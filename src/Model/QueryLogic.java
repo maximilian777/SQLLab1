@@ -119,15 +119,17 @@ public class QueryLogic implements QL_Interface {
         String query = "INSERT INTO T_Author (firstName, lastName, birthDate, deathDate) VALUES (?, ?, ?, ?)";
         PreparedStatement ps = null;
         try {
-            ps = con.prepareStatement(query);
+            ps = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, author.getFirstName());
             ps.setString(2, author.getLastName());
-            ps.setDate(3, author.getBirthDate()); // Assuming LocalDate
+            ps.setDate(3, author.getBirthDate());
+
             if (author.getDeathDate() != null) {
                 ps.setDate(4, author.getDeathDate());
             } else {
                 ps.setNull(4, java.sql.Types.DATE);
             }
+
             int affectedRows = ps.executeUpdate();
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
@@ -205,6 +207,7 @@ public class QueryLogic implements QL_Interface {
             }
             con.setAutoCommit(true);
         }
+
     }
 
     public void insertToReviews(Review review) throws SQLException {
