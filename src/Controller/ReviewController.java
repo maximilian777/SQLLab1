@@ -21,7 +21,7 @@ import java.util.List;
         public Review createReview(String ISBN, int rating, String user, String reviewText) throws SQLException {
             Review review = new Review(ISBN, rating, user, reviewText);
             queryLogic.insertToReviews(review);
-            return (Review) queryLogic.getReviews();
+            return review;
         }
 
         public void updateReview(Review oldReview, Review newReview) throws SQLException {

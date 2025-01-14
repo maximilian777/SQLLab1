@@ -69,7 +69,7 @@ public class Controller {
     }
 
     public String getCurrentUser() {
-        return getCurrentUser();
+        return currentUser;
     }
 
     public BookController getBookController() {

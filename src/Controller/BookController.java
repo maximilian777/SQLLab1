@@ -20,7 +20,7 @@ public class BookController {
         return queryLogic.getBooks();
     }
 
-    public Book createBook(String title, List<Author> authors, String genre, String pages, String ISBN) throws SQLException {
+    public Book createBook(String title, List<Author> authors, String genre, int pages, String ISBN) throws SQLException {
         Book book = new Book(title, authors, genre, pages, ISBN);
         queryLogic.insertToBooks(book);
         return book;
@@ -104,7 +104,7 @@ public class BookController {
         return book.getGenre();
     }
 
-    public String getPages(Book book) {
+    public int getPages(Book book) {
         return book.getPages();
     }
 

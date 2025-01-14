@@ -185,7 +185,7 @@ public class UserView {
                 reviewCard.setBorder(BorderFactory.createTitledBorder("Book: " + review.getBookISBN()));
 
                 String reviewDetails = String.format(
-                        "Reviewer: %s\nRating: %d/5\nReview:\n%s\n",
+                        "Reviewer: %s\nRating: %d/10\nReview:\n%s\n",
                         review.getReviewer(),
                         review.getRating(),
                         review.getReviewText()
@@ -222,7 +222,7 @@ public class UserView {
         int bookData = JOptionPane.showConfirmDialog(null, inputBookData, "Insert Book", JOptionPane.OK_CANCEL_OPTION);
 
         if (bookData == JOptionPane.OK_OPTION) {
-            return bookController.createBook(title.getText(), null, genre.getText(), pages.getText(), ISBN.getText());
+            return bookController.createBook(title.getText(), null, genre.getText(), Integer.parseInt(pages.getText()), ISBN.getText());
         }
         else {return null;}
     }

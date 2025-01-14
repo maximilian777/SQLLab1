@@ -83,7 +83,6 @@ public class QueryLogic implements QL_Interface {
                 ps.close();
             }
         }
-
         return authorsForBook;
     }
 
@@ -159,7 +158,7 @@ public class QueryLogic implements QL_Interface {
             ps.setString(1, book.getISBN());
             ps.setString(2, book.getTitle());
             ps.setString(3, book.getGenre());
-            ps.setString(4, book.getPages());
+            ps.setInt(4, book.getPages());
             int res = ps.executeUpdate();
             con.commit();
             System.out.println(res + " records inserted");
@@ -211,16 +210,19 @@ public class QueryLogic implements QL_Interface {
     }
 
     public void insertToReviews(Review review) throws SQLException {
-        String query = "INSERT INTO T_Reviews (book_ISBN, rating, reviewText, user) VALUES (?, ?, ?, ?)";
+        String query = "INSERT INTO T_Review (ISBN, rating, reviewText, username) VALUES (?, ?, ?, ?)";
         PreparedStatement ps = null;
         try {
             con.setAutoCommit(false);
             ps = con.prepareStatement(query);
             ps.setString(1, review.getBookISBN());
             ps.setInt(2, review.getRating());
+            System.out.println("sending review");
             if (review.getReviewText() != null) {
+                System.out.println(review.getReviewText());
                 ps.setBlob(3, new javax.sql.rowset.serial.SerialBlob(review.getReviewText().getBytes()));
             } else {
+                System.out.println("review text is null");
                 ps.setNull(3, java.sql.Types.BLOB);
             }
             ps.setString(4, review.getReviewer());
@@ -292,7 +294,7 @@ public class QueryLogic implements QL_Interface {
             ps = con.prepareStatement(query);
             ps.setString(1, newBook.getTitle());
             ps.setString(2, newBook.getGenre());
-            ps.setString(3, newBook.getPages());
+            ps.setInt(3, newBook.getPages());
             ps.setString(4, oldBook.getISBN());
             ps.executeUpdate();
         } catch (Exception e) {
@@ -312,7 +314,7 @@ public class QueryLogic implements QL_Interface {
     }
 
     public void updateReview(Review oldReview, Review newReview) throws SQLException {
-        String query = "UPDATE T_Reviews SET rating = ?, reviewText = ?, user = ? WHERE ISBN = ?";
+        String query = "UPDATE T_Review SET rating = ?, reviewText = ?, user = ? WHERE ISBN = ?";
         PreparedStatement ps = null;
         try {
             con.setAutoCommit(false);
@@ -440,7 +442,24 @@ public class QueryLogic implements QL_Interface {
             book.setISBN(rs.getString("ISBN"));
             book.setTitle(rs.getString("title"));
             book.setGenre(rs.getString("genre"));
-            book.setPages(rs.getString("pages"));
+            book.setPages(rs.getInt("pages"));
+
+//            String query = "SELECT * FROM T_Book_Authors WHERE ISBN = ?";
+//            PreparedStatement ps = null;
+//            try {
+//                ps = con.prepareStatement(query);
+//                ps.setString(1, "%" + book.getISBN() + "%");
+//                ResultSet rsB = ps.executeQuery();
+//                addBooksToList(rsB);
+//            } catch (Exception e) {
+//                System.err.println("SQL Exception occurred: " + e.getMessage());
+//                e.printStackTrace();
+//                throw e;
+//            } finally {
+//                if (ps != null) {
+//                    ps.close();
+//                }
+//            }
             book.setAuthors(selectAuthorsForBook(book.getISBN()));
 
             int count = 0;
