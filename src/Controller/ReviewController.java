@@ -13,11 +13,6 @@ import java.util.List;
             this.queryLogic = queryLogic;
         }
 
-        public List<Review> getAllReviews() throws DatabaseException {
-            queryLogic.selectAllFromReview();
-            return queryLogic.getReviews();
-        }
-
         public Review createReview(String ISBN, int rating, String user, String reviewText) throws DatabaseException {
             Review review = new Review(ISBN, rating, user, reviewText);
             queryLogic.insertToReviews(review);

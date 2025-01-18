@@ -15,10 +15,6 @@ public class BookController {
         this.queryLogic = queryLogic;
     }
 
-    public List<Book> getAllBooks() throws DatabaseException {
-        queryLogic.selectAllFromBook();
-        return queryLogic.getBooks();
-    }
 
     public Book createBook(String title, List<Author> authors, String genre, int pages, String ISBN) throws DatabaseException {
         Book book = new Book(title, authors, genre, pages, ISBN);

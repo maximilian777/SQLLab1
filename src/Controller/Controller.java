@@ -36,11 +36,8 @@ public class Controller {
         try {
             execute.submit(() -> {
                 try {
-                    List<Book> books = bookController.getAllBooks();
-                    List<Author> authors = authorController.getAllAuthors();
-                    List<Review> reviews = reviewController.getAllReviews();
 
-                    userView.showUserProfile(books, authors, reviews, this::getCurrentUser);
+                    userView.showUserProfile(this::getCurrentUser);
                 } catch (DatabaseException e) {
                     throw new RuntimeException(e);
                 }

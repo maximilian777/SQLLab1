@@ -29,7 +29,7 @@ public class UserView {
         this.logoutAction = logoutAction;
     }
 
-    public void showUserProfile(List<Book> books, List<Author> authors, List<Review> reviews, Supplier<String> getUser) throws DatabaseException {
+    public void showUserProfile(Supplier<String> getUser) throws DatabaseException {
         JFrame userFrame = new JFrame("User Menu");
         userFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         userFrame.setSize(450, 300);
@@ -62,28 +62,28 @@ public class UserView {
 
         inputBookButton.addActionListener(e -> {
             try {
-                inputBook(books);
+                inputBook();
             } catch (DatabaseException ex) {
                 throw new RuntimeException(ex);
             }
         });
         inputAuthorButton.addActionListener(e -> {
             try {
-                inputAuthor(authors);
+                inputAuthor();
             } catch (DatabaseException ex) {
                 throw new RuntimeException(ex);
             }
         });
         inputReviewButton.addActionListener(e -> {
             try {
-                inputReview(reviews, getUser);
+                inputReview(getUser);
             } catch (DatabaseException ex) {
                 throw new RuntimeException(ex);
             }
         });
         inputAuthorToBookButton.addActionListener(e -> {
             try {
-                inputAuthorToBook(books, authors);
+                inputAuthorToBook();
             } catch (DatabaseException ex) {
                 throw new RuntimeException(ex);
             }
@@ -135,7 +135,7 @@ public class UserView {
         bookFrame.setVisible(true);
     }
 
-    private Book inputBook(List<Book> books) throws DatabaseException {
+    private Book inputBook() throws DatabaseException {
         JPanel inputBookData = new JPanel(new GridLayout(4, 2));
         inputBookData.add(new JLabel("Title: "));
         JTextField title = new JTextField();
@@ -158,7 +158,7 @@ public class UserView {
         else {return null;}
     }
 
-    private Author inputAuthor(List<Author> authors) throws DatabaseException {
+    private Author inputAuthor() throws DatabaseException {
         JPanel inputAuthorData = new JPanel(new GridLayout(4, 2));
         inputAuthorData.add(new JLabel("First Name: "));
         JTextField firstName = new JTextField();
@@ -196,7 +196,7 @@ public class UserView {
         }
     }
 
-    private Review inputReview(List<Review> reviews, Supplier<String> getUser) throws DatabaseException {
+    private Review inputReview(Supplier<String> getUser) throws DatabaseException {
         JPanel inputReviewData = new JPanel(new GridLayout(3, 2));
         inputReviewData.add(new JLabel("Book ISBN: "));
         JTextField ISBN = new JTextField();
@@ -216,41 +216,33 @@ public class UserView {
         else { return null;}
     }
 
-    private void inputAuthorToBook(List<Book> books, List<Author> authors) throws DatabaseException {
+    private void inputAuthorToBook() throws DatabaseException {
         JPanel inputAuthorToBook = new JPanel(new GridLayout(3, 2));
 
-        inputAuthorToBook.add(new JLabel("Select a Book:"));
-        JComboBox<Book> bookDropdown = new JComboBox<>(books.toArray(new Book[0]));
-        bookDropdown.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                if (value instanceof Book) {
-                    value = ((Book) value).getTitle();
-                }
-                return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            }
-        });
-        inputAuthorToBook.add(bookDropdown);
+        inputAuthorToBook.add(new JLabel("Enter Book ISBN:"));
+        JTextField bookISBN = new JTextField();
+        inputAuthorToBook.add(bookISBN);
 
-        inputAuthorToBook.add(new JLabel("Select an Author:"));
-        JComboBox<Author> authorDropdown = new JComboBox<>(authors.toArray(new Author[0]));
-        authorDropdown.setRenderer(new DefaultListCellRenderer() {
-            @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                if (value instanceof Author) {
-                    value = ((Author) value).getFirstName() + " " + ((Author) value).getLastName();
-                }
-                return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            }
-        });
-        inputAuthorToBook.add(authorDropdown);
+        inputAuthorToBook.add(new JLabel("Enter Author ID:"));
+        JTextField authorID = new JTextField();
+        inputAuthorToBook.add(authorID);
 
         int result = JOptionPane.showConfirmDialog(null, inputAuthorToBook, "Assign Author to Book", JOptionPane.OK_CANCEL_OPTION);
 
         if (result == JOptionPane.OK_OPTION) {
-            Book selectedBook = (Book) bookDropdown.getSelectedItem();
-            Author selectedAuthor = (Author) authorDropdown.getSelectedItem();
-            bookController.assignAuthorToBook(selectedBook.getISBN(), selectedAuthor.getAuthorID());
+            String isbn = bookISBN.getText().trim();
+            String authorIdStr = authorID.getText().trim();
+            if (isbn.isEmpty() || authorIdStr.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Both fields are required!");
+                return;
+            }
+
+            try {
+                int authorIDInt = Integer.parseInt(authorIdStr);
+                bookController.assignAuthorToBook(isbn, String.valueOf(authorIDInt));
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Author ID must be a valid number!");
+            }
         }
     }
 

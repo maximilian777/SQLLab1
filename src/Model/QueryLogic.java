@@ -7,50 +7,10 @@ import java.util.List;
 public class QueryLogic implements QL_Interface {
 
     Connection con;
-    List<Book> books;
-    List<Author> authors;
-    List<Review> reviews;
-    List<User> users;
 
     public QueryLogic(Connection con) {
         this.con = con;
-        books = new ArrayList<>();
-        authors = new ArrayList<>();
-        reviews = new ArrayList<>();
-    }
 
-
-    public void selectAllFromAuthor() throws DatabaseException {
-        try (Statement stmt = con.createStatement()) {
-            ResultSet rs = stmt.executeQuery("SELECT * FROM T_Author");
-
-            while (rs.next()) {
-                Author author = new Author();
-                author.setAuthorID(rs.getString("aID"));
-                author.setFirstName(rs.getString("firstName"));
-                author.setLastName(rs.getString("lastName"));
-                author.setBirthDate(rs.getDate("birthDate"));
-                if (rs.getString("deathDate") != null) {
-                    author.setDeathDate(rs.getDate("deathDate"));
-                }
-                authors.add(author);
-            }
-        } catch (SQLException e) {
-            System.err.println("SQL Exception occurred: " + e.getMessage());
-            e.printStackTrace();
-            throw new DatabaseException("SQL Error when searching a book by rating", e);
-        }
-    }
-
-    public void selectAllFromBook() throws DatabaseException {
-        try (Statement stmt = con.createStatement()) {
-            ResultSet rs = stmt.executeQuery("SELECT * FROM T_Book");
-            addBooksToList(rs);
-        } catch (SQLException e) {
-            System.err.println("SQL Exception occurred: " + e.getMessage());
-            e.printStackTrace();
-            throw new DatabaseException("SQL Error when searching a book by rating", e);
-        }
     }
 
     public List<Author> selectAuthorsForBook(String ISBN) throws DatabaseException {
@@ -82,34 +42,6 @@ public class QueryLogic implements QL_Interface {
         return authorsForBook;
     }
 
-    public void selectAllFromReview() throws DatabaseException {
-        try (Statement stmt = con.createStatement()) {
-            ResultSet rs = stmt.executeQuery("SELECT * FROM T_Review");
-
-            while (rs.next()) {
-                Review review = new Review();
-                for (Book book : books) {
-                    if (book.getISBN().equals(rs.getString("ISBN"))) {
-                        review.setBookISBN(book.getISBN());
-                    }
-                }
-                review.setRating(rs.getInt("rating"));
-                review.setReviewer(rs.getString("username"));
-                Blob reviewBlob = rs.getBlob("reviewText");
-                if (reviewBlob != null) {
-                    review.setReviewText(new String(reviewBlob.getBytes(1, (int) reviewBlob.length())));
-                } else {
-                    review.setReviewText(null); // need to handle null Blob
-                }
-                reviews.add(review);
-            }
-        } catch (SQLException e) {
-            System.err.println("SQL Exception occurred: " + e.getMessage());
-            e.printStackTrace();
-            throw new DatabaseException("SQL Error when searching a book by rating", e);
-        }
-    }
-
     public void insertToAuthors(Author author) throws DatabaseException {
         String query = "INSERT INTO T_Author (firstName, lastName, birthDate, deathDate) VALUES (?, ?, ?, ?)";
         PreparedStatement ps = null;
@@ -133,7 +65,6 @@ public class QueryLogic implements QL_Interface {
                     }
                 }
             }
-            authors.add(author);
         } catch (SQLException e) {
             System.err.println("SQL Exception occurred: " + e.getMessage());
             e.printStackTrace();
@@ -154,7 +85,6 @@ public class QueryLogic implements QL_Interface {
             int res = ps.executeUpdate();
             con.commit();
             System.out.println(res + " records inserted");
-            books.add(book);
         } catch (SQLException e) {
             if (con != null) {
                 try {
@@ -508,22 +438,24 @@ public class QueryLogic implements QL_Interface {
     }
 
     public List<Book> searchBookByRating(int rating) throws DatabaseException {
-        String query = "SELECT * FROM T_Book WHERE rating = ?";
+        String query = "SELECT b.ISBN, b.title, b.genre, b.pages " +
+                "FROM T_Book b " +
+                "INNER JOIN T_Review r ON b.ISBN = r.ISBN " +
+                "WHERE r.rating = ?";
         PreparedStatement ps = null;
         List<Book> resultBooks = new ArrayList<>();
 
         try {
             ps = con.prepareStatement(query);
-            ps.setString(1, "%" + rating + "%");
+            ps.setInt(1, rating);
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
                 Book book = new Book();
+                book.setISBN(rs.getString("ISBN"));
                 book.setTitle(rs.getString("title"));
                 book.setGenre(rs.getString("genre"));
                 book.setPages(rs.getInt("pages"));
-                book.setISBN(rs.getString("ISBN"));
-
                 List<Author> authors = selectAuthorsForBook(rs.getString("ISBN"));
                 book.setAuthors(authors);
 
@@ -532,7 +464,7 @@ public class QueryLogic implements QL_Interface {
         } catch (SQLException e) {
             System.err.println("SQL Exception occurred: " + e.getMessage());
             e.printStackTrace();
-            throw new DatabaseException("SQL Error when searching a book by title", e);
+            throw new DatabaseException("SQL Error when searching books by rating", e);
         } finally {
             try {
                 if (ps != null) {
@@ -584,35 +516,4 @@ public class QueryLogic implements QL_Interface {
 
         return resultBooks;
     }
-
-    private void addBooksToList(ResultSet rs) throws DatabaseException {
-        try{
-            while (rs.next()) {
-                Book book = new Book();
-                book.setISBN(rs.getString("ISBN"));
-                book.setTitle(rs.getString("title"));
-                book.setGenre(rs.getString("genre"));
-                book.setPages(rs.getInt("pages"));
-                book.setAuthors(selectAuthorsForBook(book.getISBN()));
-
-                int count = 0;
-                for (Book book1 : books) {
-                    if (book1.getISBN().equals(book.getISBN())) {
-                        count++;
-                    }
-                }
-                if (count <= 0) {
-                    books.add(book);
-                }
-            }
-        } catch (SQLException e) {
-            throw new DatabaseException("SQL Exception occurred: " + e.getMessage());
-        }
-    }
-
-    public List<Book> getBooks() {return books;}
-
-    public List<Author> getAuthors() {return authors;}
-
-    public List<Review> getReviews() {return reviews;}
 }
