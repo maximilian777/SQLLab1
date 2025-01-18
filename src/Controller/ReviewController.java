@@ -13,18 +13,18 @@ import java.util.List;
             this.queryLogic = queryLogic;
         }
 
-        public List<Review> getAllReviews() throws SQLException {
+        public List<Review> getAllReviews() throws DatabaseException {
             queryLogic.selectAllFromReview();
             return queryLogic.getReviews();
         }
 
-        public Review createReview(String ISBN, int rating, String user, String reviewText) throws SQLException {
+        public Review createReview(String ISBN, int rating, String user, String reviewText) throws DatabaseException {
             Review review = new Review(ISBN, rating, user, reviewText);
             queryLogic.insertToReviews(review);
             return review;
         }
 
-        public void updateReview(Review oldReview, Review newReview) throws SQLException {
+        public void updateReview(Review oldReview, Review newReview) throws DatabaseException {
             queryLogic.updateReview(oldReview, newReview);
         }
 

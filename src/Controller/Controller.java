@@ -41,7 +41,7 @@ public class Controller {
                     List<Review> reviews = reviewController.getAllReviews();
 
                     userView.showUserProfile(books, authors, reviews, this::getCurrentUser);
-                } catch (SQLException e) {
+                } catch (DatabaseException e) {
                     throw new RuntimeException(e);
                 }
             });

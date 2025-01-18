@@ -1,6 +1,7 @@
 package Controller;
 
 import Model.Author;
+import Model.DatabaseException;
 import Model.QL_Interface;
 import Model.QueryLogic;
 
@@ -15,12 +16,12 @@ public class AuthorController {
         this.queryLogic = queryLogic;
     }
 
-    public List<Author> getAllAuthors() throws SQLException {
+    public List<Author> getAllAuthors() throws DatabaseException {
         queryLogic.selectAllFromAuthor();
         return queryLogic.getAuthors();
     }
 
-    public Author createAuthor(String firstName, String lastname, java.sql.Date birthDate, java.sql.Date deathDate) throws SQLException {
+    public Author createAuthor(String firstName, String lastname, java.sql.Date birthDate, java.sql.Date deathDate) throws DatabaseException {
         Author author = new Author(firstName, lastname, birthDate, deathDate);
         queryLogic.insertToAuthors(author);
         return author;

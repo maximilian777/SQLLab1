@@ -15,11 +15,11 @@ public interface QL_Interface {
     void updateAuthor(Author oldAuthor, Author newAuthor) throws DatabaseException;
     void updateBook(Book newBook, Book oldBook) throws DatabaseException;
     void updateReview(Review oldReview, Review newReview) throws DatabaseException;
-    void searchBookByTitle(String title) throws DatabaseException;
-    void searchBookByISBN(String ISBN) throws DatabaseException;
-    void searchBookByAuthor(Author author) throws DatabaseException;
-    void searchBookByRating(int rating) throws DatabaseException;
-    void searchBookByGenre(String genre) throws DatabaseException;
+    List<Book> searchBookByTitle(String title) throws DatabaseException;
+    List<Book> searchBookByISBN(String ISBN) throws DatabaseException;
+    public List<Book> searchBookByAuthor(String firstName, String lastName) throws DatabaseException;
+    List<Book> searchBookByRating(int rating) throws DatabaseException;
+    List<Book> searchBookByGenre(String genre) throws DatabaseException;
     List<Book> getBooks();
     List<Author> getAuthors();
     List<Review> getReviews();

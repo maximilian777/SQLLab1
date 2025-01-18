@@ -5,6 +5,7 @@ import Controller.BookController;
 import Controller.ReviewController;
 import Model.Author;
 import Model.Book;
+import Model.DatabaseException;
 import Model.Review;
 
 import javax.swing.*;
@@ -28,15 +29,12 @@ public class UserView {
         this.logoutAction = logoutAction;
     }
 
-    public void showUserProfile(List<Book> books, List<Author> authors, List<Review> reviews, Supplier<String> getUser) throws SQLException {
+    public void showUserProfile(List<Book> books, List<Author> authors, List<Review> reviews, Supplier<String> getUser) throws DatabaseException {
         JFrame userFrame = new JFrame("User Menu");
         userFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         userFrame.setSize(450, 300);
 
-        JPanel currentUserPanel = new JPanel(new GridLayout(3, 3));
-        JButton viewBooksButton = new JButton("View Books");
-        JButton viewAuthorsButton = new JButton("View Authors");
-        JButton viewReviewsButton = new JButton("View Reviews");
+        JPanel currentUserPanel = new JPanel(new GridLayout(2, 3));
         JButton search = new JButton("Search book");
         JButton inputBookButton = new JButton("Insert Book");
         JButton inputAuthorButton = new JButton("Insert Author");
@@ -44,9 +42,6 @@ public class UserView {
         JButton inputAuthorToBookButton = new JButton("Assign Author to Book");
         JButton logOutButton = new JButton("Log out");
 
-        currentUserPanel.add(viewBooksButton);
-        currentUserPanel.add(viewAuthorsButton);
-        currentUserPanel.add(viewReviewsButton);
         currentUserPanel.add(search);
         currentUserPanel.add(inputBookButton);
         currentUserPanel.add(inputAuthorButton);
@@ -57,13 +52,10 @@ public class UserView {
         userFrame.add(currentUserPanel);
         userFrame.setVisible(true);
 
-        viewBooksButton.addActionListener(e -> displayBooks(books));
-        viewAuthorsButton.addActionListener(e -> displayAuthors(authors));
-        viewReviewsButton.addActionListener(e -> displayReviews(reviews));
         search.addActionListener(e -> {
             try {
                 search();
-            } catch (SQLException ex) {
+            } catch (DatabaseException ex) {
                 throw new RuntimeException(ex);
             }
         });
@@ -71,28 +63,28 @@ public class UserView {
         inputBookButton.addActionListener(e -> {
             try {
                 inputBook(books);
-            } catch (SQLException ex) {
+            } catch (DatabaseException ex) {
                 throw new RuntimeException(ex);
             }
         });
         inputAuthorButton.addActionListener(e -> {
             try {
                 inputAuthor(authors);
-            } catch (SQLException ex) {
+            } catch (DatabaseException ex) {
                 throw new RuntimeException(ex);
             }
         });
         inputReviewButton.addActionListener(e -> {
             try {
                 inputReview(reviews, getUser);
-            } catch (SQLException ex) {
+            } catch (DatabaseException ex) {
                 throw new RuntimeException(ex);
             }
         });
         inputAuthorToBookButton.addActionListener(e -> {
             try {
                 inputAuthorToBook(books, authors);
-            } catch (SQLException ex) {
+            } catch (DatabaseException ex) {
                 throw new RuntimeException(ex);
             }
         });
@@ -143,68 +135,7 @@ public class UserView {
         bookFrame.setVisible(true);
     }
 
-    private void displayAuthors(List<Author> authors) {
-        JFrame authorFrame = new JFrame("Authors");
-        authorFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        authorFrame.setSize(400, 300);
-
-        JPanel authorPanel = new JPanel();
-        authorPanel.setLayout(new BoxLayout(authorPanel, BoxLayout.Y_AXIS));
-
-        for (Author author : authors) {
-            JPanel singleAuthorPanel = new JPanel(new GridLayout(3, 1, 5, 5));
-            singleAuthorPanel.setBorder(BorderFactory.createTitledBorder(author.getFirstName() + " " + author.getLastName()));
-
-            singleAuthorPanel.add(new JLabel("Author ID: " + author.getAuthorID()));
-            singleAuthorPanel.add(new JLabel("Date of Birth: " + author.getBirthDate()));
-            singleAuthorPanel.add(new JLabel("Date of Death: " + (author.getDeathDate() != null ? author.getDeathDate() : "N/A")));
-
-            authorPanel.add(singleAuthorPanel);
-        }
-
-        JScrollPane scrollPane = new JScrollPane(authorPanel);
-        authorFrame.add(scrollPane);
-        authorFrame.setVisible(true);
-    }
-
-    private void displayReviews(List<Review> reviews) {
-        JFrame reviewFrame = new JFrame("Reviews");
-        reviewFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        reviewFrame.setSize(600, 400);
-
-        JPanel reviewPanel = new JPanel();
-        reviewPanel.setLayout(new BoxLayout(reviewPanel, BoxLayout.Y_AXIS));
-
-        if (reviews.isEmpty()) {
-            JLabel noReviewsLabel = new JLabel("No reviews available!");
-            noReviewsLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            reviewPanel.add(noReviewsLabel);
-        } else {
-            for (Review review : reviews) {
-                JPanel reviewCard = new JPanel(new BorderLayout());
-                reviewCard.setBorder(BorderFactory.createTitledBorder("Book: " + review.getBookISBN()));
-
-                String reviewDetails = String.format(
-                        "Reviewer: %s\nRating: %d/10\nReview:\n%s\n",
-                        review.getReviewer(),
-                        review.getRating(),
-                        review.getReviewText()
-                );
-
-                JTextArea reviewTextArea = new JTextArea(reviewDetails);
-                reviewTextArea.setEditable(false);
-                reviewCard.add(new JScrollPane(reviewTextArea), BorderLayout.CENTER);
-
-                reviewPanel.add(reviewCard);
-            }
-        }
-
-        JScrollPane scrollPane = new JScrollPane(reviewPanel);
-        reviewFrame.add(scrollPane);
-        reviewFrame.setVisible(true);
-    }
-
-    private Book inputBook(List<Book> books) throws SQLException {
+    private Book inputBook(List<Book> books) throws DatabaseException {
         JPanel inputBookData = new JPanel(new GridLayout(4, 2));
         inputBookData.add(new JLabel("Title: "));
         JTextField title = new JTextField();
@@ -227,7 +158,7 @@ public class UserView {
         else {return null;}
     }
 
-    private Author inputAuthor(List<Author> authors) throws SQLException {
+    private Author inputAuthor(List<Author> authors) throws DatabaseException {
         JPanel inputAuthorData = new JPanel(new GridLayout(4, 2));
         inputAuthorData.add(new JLabel("First Name: "));
         JTextField firstName = new JTextField();
@@ -265,7 +196,7 @@ public class UserView {
         }
     }
 
-    private Review inputReview(List<Review> reviews, Supplier<String> getUser) throws SQLException {
+    private Review inputReview(List<Review> reviews, Supplier<String> getUser) throws DatabaseException {
         JPanel inputReviewData = new JPanel(new GridLayout(3, 2));
         inputReviewData.add(new JLabel("Book ISBN: "));
         JTextField ISBN = new JTextField();
@@ -285,7 +216,7 @@ public class UserView {
         else { return null;}
     }
 
-    private void inputAuthorToBook(List<Book> books, List<Author> authors) throws SQLException {
+    private void inputAuthorToBook(List<Book> books, List<Author> authors) throws DatabaseException {
         JPanel inputAuthorToBook = new JPanel(new GridLayout(3, 2));
 
         inputAuthorToBook.add(new JLabel("Select a Book:"));
@@ -323,7 +254,7 @@ public class UserView {
         }
     }
 
-    private void search() throws SQLException {
+    private void search() throws DatabaseException {
         List<Book> searchedItems = new ArrayList<>();
         JComboBox<String> searchOptions = new JComboBox<>(new String[]{"Title", "Author", "ISBN", "Genre", "Review Score"});
         JPanel searchPanel = new JPanel();
@@ -337,10 +268,9 @@ public class UserView {
         searchPanel.add(new JLabel("Search Input:"));
         searchPanel.add(inputField);
 
-        // Action listener to dynamically update input fields
         searchOptions.addActionListener(e -> {
             String selected = (String) searchOptions.getSelectedItem();
-            searchPanel.removeAll(); // Clear the panel
+            searchPanel.removeAll();
             searchPanel.add(new JLabel("Select Search Type:"));
             searchPanel.add(searchOptions);
 

@@ -384,80 +384,205 @@ public class QueryLogic implements QL_Interface {
         }
     }
 
-    public void searchBookByTitle(String title) throws DatabaseException {
-        String query = "SELECT * FROM T_Books WHERE title LIKE ?";
+    public List<Book> searchBookByTitle(String title) throws DatabaseException {
+        String query = "SELECT * FROM T_Book WHERE title LIKE ?";
         PreparedStatement ps = null;
+        List<Book> resultBooks = new ArrayList<>();
+
         try {
             ps = con.prepareStatement(query);
             ps.setString(1, "%" + title + "%");
             ResultSet rs = ps.executeQuery();
-            addBooksToList(rs);
+
+            while (rs.next()) {
+                Book book = new Book();
+                book.setTitle(rs.getString("title"));
+                System.out.println(rs.getString("title"));
+                book.setGenre(rs.getString("genre"));
+                book.setPages(rs.getInt("pages"));
+                book.setISBN(rs.getString("ISBN"));
+
+                List<Author> authors = selectAuthorsForBook(rs.getString("ISBN"));
+                book.setAuthors(authors);
+
+                resultBooks.add(book);
+            }
         } catch (SQLException e) {
             System.err.println("SQL Exception occurred: " + e.getMessage());
             e.printStackTrace();
-            throw new DatabaseException("SQL Error when searching a book by rating", e);
+            throw new DatabaseException("SQL Error when searching a book by title", e);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
+
+        return resultBooks;
     }
 
-    public void searchBookByISBN(String ISBN) throws DatabaseException {
-        String query = "SELECT * FROM T_Books WHERE ISBN = ?";
+    public List<Book> searchBookByISBN(String ISBN) throws DatabaseException {
+        String query = "SELECT * FROM T_Book WHERE ISBN = ?";
         PreparedStatement ps = null;
+        List<Book> resultBooks = new ArrayList<>();
+
         try {
             ps = con.prepareStatement(query);
             ps.setString(1, "%" + ISBN + "%");
             ResultSet rs = ps.executeQuery();
-            addBooksToList(rs);
+
+            while (rs.next()) {
+                Book book = new Book();
+                book.setTitle(rs.getString("title"));
+                book.setGenre(rs.getString("genre"));
+                book.setPages(rs.getInt("pages"));
+                book.setISBN(rs.getString("ISBN"));
+
+                List<Author> authors = selectAuthorsForBook(rs.getString("ISBN"));
+                book.setAuthors(authors);
+
+                resultBooks.add(book);
+            }
         } catch (SQLException e) {
             System.err.println("SQL Exception occurred: " + e.getMessage());
             e.printStackTrace();
-            throw new DatabaseException("SQL Error when searching a book by rating", e);
+            throw new DatabaseException("SQL Error when searching a book by ISBN", e);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
+
+        return resultBooks;
     }
 
-    public void searchBookByAuthor(Author author) throws DatabaseException {
-        String query = "SELECT * FROM T_Books WHERE aFirstName = ? AND lastName = ?";
+    public List<Book> searchBookByAuthor(String firstName, String lastName) throws DatabaseException {
+        String query = "SELECT b.* FROM T_Book b " +
+                "JOIN T_Book_Authors ba ON b.ISBN = ba.book_ISBN " +
+                "JOIN T_Author a ON ba.author_aID = a.aID " +
+                "WHERE a.firstName = ? AND a.lastName = ?";
+
         PreparedStatement ps = null;
+        List<Book> resultBooks = new ArrayList<>();
+
         try {
             ps = con.prepareStatement(query);
-            ps.setString(1, "%" + author.getFirstName() + "%");
-            ps.setString(2, "%" + author.getLastName() + "%");
+            ps.setString(1, firstName);
+            ps.setString(2, lastName);
             ResultSet rs = ps.executeQuery();
-            addBooksToList(rs);
+
+            while (rs.next()) {
+                Book book = new Book();
+                book.setTitle(rs.getString("title"));
+                book.setGenre(rs.getString("genre"));
+                book.setPages(rs.getInt("pages"));
+                book.setISBN(rs.getString("ISBN"));
+
+                List<Author> authors = selectAuthorsForBook(rs.getString("ISBN"));
+                book.setAuthors(authors);
+
+                resultBooks.add(book);
+            }
         } catch (SQLException e) {
             System.err.println("SQL Exception occurred: " + e.getMessage());
             e.printStackTrace();
             throw new DatabaseException("SQL Error when searching a book by author", e);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
+
+        return resultBooks;
     }
 
-    public void searchBookByRating(int rating) throws DatabaseException {
-        String query = "SELECT * FROM T_Books WHERE rating = ?";
+    public List<Book> searchBookByRating(int rating) throws DatabaseException {
+        String query = "SELECT * FROM T_Book WHERE rating = ?";
         PreparedStatement ps = null;
+        List<Book> resultBooks = new ArrayList<>();
+
         try {
             ps = con.prepareStatement(query);
             ps.setString(1, "%" + rating + "%");
             ResultSet rs = ps.executeQuery();
-            addBooksToList(rs);
+
+            while (rs.next()) {
+                Book book = new Book();
+                book.setTitle(rs.getString("title"));
+                book.setGenre(rs.getString("genre"));
+                book.setPages(rs.getInt("pages"));
+                book.setISBN(rs.getString("ISBN"));
+
+                List<Author> authors = selectAuthorsForBook(rs.getString("ISBN"));
+                book.setAuthors(authors);
+
+                resultBooks.add(book);
+            }
         } catch (SQLException e) {
             System.err.println("SQL Exception occurred: " + e.getMessage());
             e.printStackTrace();
-            throw new DatabaseException("SQL Error when searching a book by rating", e);
+            throw new DatabaseException("SQL Error when searching a book by title", e);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
+
+        return resultBooks;
     }
 
-    public void searchBookByGenre(String genre) throws DatabaseException {
-        String query = "SELECT * FROM T_Books WHERE genre = ?";
+    public List<Book> searchBookByGenre(String genre) throws DatabaseException {
+        String query = "SELECT * FROM T_Book WHERE genre = ?";
         PreparedStatement ps = null;
+        List<Book> resultBooks = new ArrayList<>();
+
         try {
             ps = con.prepareStatement(query);
             ps.setString(1, "%" + genre + "%");
             ResultSet rs = ps.executeQuery();
-            addBooksToList(rs);
+
+            while (rs.next()) {
+                Book book = new Book();
+                book.setTitle(rs.getString("title"));
+                book.setGenre(rs.getString("genre"));
+                book.setPages(rs.getInt("pages"));
+                book.setISBN(rs.getString("ISBN"));
+
+                List<Author> authors = selectAuthorsForBook(rs.getString("ISBN"));
+                book.setAuthors(authors);
+
+                resultBooks.add(book);
+            }
         } catch (SQLException e) {
             System.err.println("SQL Exception occurred: " + e.getMessage());
             e.printStackTrace();
-            throw new DatabaseException("SQL Error when searching a book by genre", e);
+            throw new DatabaseException("SQL Error when searching a book by title", e);
+        } finally {
+            try {
+                if (ps != null) {
+                    ps.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
+
+        return resultBooks;
     }
 
     private void addBooksToList(ResultSet rs) throws DatabaseException {
