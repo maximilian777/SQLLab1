@@ -9,7 +9,7 @@ public class User {
     private List<Review> reviews;
     private String accountCreationDate;
 
-    User(String username, String password) {
+    public User(String username, String password) {
         this.username = username;
         this.password = password;
         accountCreationDate = "";
