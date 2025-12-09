@@ -1,0 +1,316 @@
+package View;
+
+import Controller.AuthorController;
+import Controller.BookController;
+import Controller.ReviewController;
+import Model.Author;
+import Model.Book;
+import Model.DatabaseException;
+import Model.Review;
+
+import javax.swing.*;
+import java.awt.*;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
+public class UserView {
+
+    private final BookController bookController;
+    private final AuthorController authorController;
+    private final ReviewController reviewController;
+    private final Runnable logoutAction;
+
+    public UserView(BookController bookController, AuthorController authorController, ReviewController reviewController, Runnable logoutAction) {
+        this.bookController = bookController;
+        this.authorController = authorController;
+        this.reviewController = reviewController;
+        this.logoutAction = logoutAction;
+    }
+
+    public void showUserProfile(Supplier<String> getUser) throws DatabaseException {
+        JFrame userFrame = new JFrame("User Menu");
+        userFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        userFrame.setSize(450, 300);
+
+        JPanel currentUserPanel = new JPanel(new GridLayout(2, 3));
+        JButton search = new JButton("Search book");
+        JButton inputBookButton = new JButton("Insert Book");
+        JButton inputAuthorButton = new JButton("Insert Author");
+        JButton inputReviewButton = new JButton("Write a Review");
+        JButton inputAuthorToBookButton = new JButton("Assign Author to Book");
+        JButton logOutButton = new JButton("Log out");
+
+        currentUserPanel.add(search);
+        currentUserPanel.add(inputBookButton);
+        currentUserPanel.add(inputAuthorButton);
+        currentUserPanel.add(inputReviewButton);
+        currentUserPanel.add(inputAuthorToBookButton);
+        currentUserPanel.add(logOutButton);
+
+        userFrame.add(currentUserPanel);
+        userFrame.setVisible(true);
+
+        search.addActionListener(e -> {
+            try {
+                search();
+            } catch (DatabaseException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        inputBookButton.addActionListener(e -> {
+            try {
+                inputBook();
+            } catch (DatabaseException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        inputAuthorButton.addActionListener(e -> {
+            try {
+                inputAuthor();
+            } catch (DatabaseException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        inputReviewButton.addActionListener(e -> {
+            try {
+                inputReview(getUser);
+            } catch (DatabaseException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+        inputAuthorToBookButton.addActionListener(e -> {
+            try {
+                inputAuthorToBook();
+            } catch (DatabaseException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        logOutButton.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    userFrame,
+                    "Are you sure you want to log out?",
+                    "Logout Confirmation",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                if (logoutAction != null) {
+                    logoutAction.run();
+                }
+                userFrame.dispose();
+            }
+        });
+    }
+
+    private void displayBooks(List<Book> books) {
+        JFrame bookFrame = new JFrame("Books");
+        bookFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        bookFrame.setSize(600, 400);
+
+        JPanel bookPanel = new JPanel();
+        bookPanel.setLayout(new BoxLayout(bookPanel, BoxLayout.Y_AXIS));
+
+        for (Book book : books) {
+            JPanel singleBookPanel = new JPanel(new GridLayout(4, 1, 5, 5));
+            singleBookPanel.setBorder(BorderFactory.createTitledBorder(book.getTitle()));
+
+            singleBookPanel.add(new JLabel("Genre: " + book.getGenre()));
+            singleBookPanel.add(new JLabel("Pages: " + book.getPages()));
+            singleBookPanel.add(new JLabel("ISBN: " + book.getISBN()));
+
+            StringBuilder authors = new StringBuilder("Authors: ");
+            for (Author author : book.getAuthors()) {
+                authors.append(author.getFirstName()).append(" ").append(author.getLastName()).append(", ");
+            }
+            singleBookPanel.add(new JLabel(authors.toString()));
+
+            bookPanel.add(singleBookPanel);
+        }
+
+        JScrollPane scrollPane = new JScrollPane(bookPanel);
+        bookFrame.add(scrollPane);
+        bookFrame.setVisible(true);
+    }
+
+    private Book inputBook() throws DatabaseException {
+        JPanel inputBookData = new JPanel(new GridLayout(4, 2));
+        inputBookData.add(new JLabel("Title: "));
+        JTextField title = new JTextField();
+        inputBookData.add(title);
+        inputBookData.add(new JLabel("Genre: "));
+        JTextField genre = new JTextField();
+        inputBookData.add(genre);
+        inputBookData.add(new JLabel("Pages: "));
+        JTextField pages = new JTextField();
+        inputBookData.add(pages);
+        inputBookData.add(new JLabel("ISBN: "));
+        JTextField ISBN = new JTextField();
+        inputBookData.add(ISBN);
+
+        int bookData = JOptionPane.showConfirmDialog(null, inputBookData, "Insert Book", JOptionPane.OK_CANCEL_OPTION);
+
+        if (bookData == JOptionPane.OK_OPTION) {
+            return bookController.createBook(title.getText(), null, genre.getText(), Integer.parseInt(pages.getText()), ISBN.getText());
+        }
+        else {return null;}
+    }
+
+    private Author inputAuthor() throws DatabaseException {
+        JPanel inputAuthorData = new JPanel(new GridLayout(4, 2));
+        inputAuthorData.add(new JLabel("First Name: "));
+        JTextField firstName = new JTextField();
+        inputAuthorData.add(firstName);
+        inputAuthorData.add(new JLabel("Last Name: "));
+        JTextField lastName = new JTextField();
+        inputAuthorData.add(lastName);
+        inputAuthorData.add(new JLabel("Birth Date: "));
+        JTextField birthDate = new JTextField();
+        inputAuthorData.add(birthDate);
+        inputAuthorData.add(new JLabel("Death Date:"));
+        JTextField deathDate = new JTextField();
+        inputAuthorData.add(deathDate);
+
+        int authorData = JOptionPane.showConfirmDialog(null, inputAuthorData, "Insert Author", JOptionPane.OK_CANCEL_OPTION);
+        if (authorData == JOptionPane.OK_OPTION) {
+            try {
+                java.sql.Date parsedBirthDate = java.sql.Date.valueOf(birthDate.getText());
+                java.sql.Date parsedDeathDate = null;
+                if (!deathDate.getText().trim().isEmpty()) {
+                    parsedDeathDate = java.sql.Date.valueOf(deathDate.getText());
+                }
+                return authorController.createAuthor(
+                        firstName.getText(),
+                        lastName.getText(),
+                        parsedBirthDate,
+                        parsedDeathDate
+                );
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(null, "Invalid date format! Please use yyyy-MM-dd.", "Error", JOptionPane.ERROR_MESSAGE);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private Review inputReview(Supplier<String> getUser) throws DatabaseException {
+        JPanel inputReviewData = new JPanel(new GridLayout(3, 2));
+        inputReviewData.add(new JLabel("Book ISBN: "));
+        JTextField ISBN = new JTextField();
+        inputReviewData.add(ISBN);
+        inputReviewData.add(new JLabel("Select a rating (1-10): "));
+        Integer[] ratings = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        JComboBox<Integer> selectRating = new JComboBox<>(ratings);
+        inputReviewData.add(selectRating);
+        inputReviewData.add(new JLabel("Review: "));
+        JTextField reviewText = new JTextField();
+        inputReviewData.add(reviewText);
+
+        int reviewData = JOptionPane.showConfirmDialog(null, inputReviewData, "Write a review", JOptionPane.OK_CANCEL_OPTION);
+        if (reviewData == JOptionPane.OK_OPTION) {
+            return reviewController.createReview(ISBN.getText(), (int) selectRating.getSelectedItem(), getUser.get(), reviewText.getText() );
+        }
+        else { return null;}
+    }
+
+    private void inputAuthorToBook() throws DatabaseException {
+        JPanel inputAuthorToBook = new JPanel(new GridLayout(3, 2));
+
+        inputAuthorToBook.add(new JLabel("Enter Book ISBN:"));
+        JTextField bookISBN = new JTextField();
+        inputAuthorToBook.add(bookISBN);
+
+        inputAuthorToBook.add(new JLabel("Enter Author ID:"));
+        JTextField authorID = new JTextField();
+        inputAuthorToBook.add(authorID);
+
+        int result = JOptionPane.showConfirmDialog(null, inputAuthorToBook, "Assign Author to Book", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String isbn = bookISBN.getText().trim();
+            String authorIdStr = authorID.getText().trim();
+            if (isbn.isEmpty() || authorIdStr.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Both fields are required!");
+                return;
+            }
+
+            try {
+                int authorIDInt = Integer.parseInt(authorIdStr);
+                bookController.assignAuthorToBook(isbn, String.valueOf(authorIDInt));
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(null, "Author ID must be a valid number!");
+            }
+        }
+    }
+
+    private void search() throws DatabaseException {
+        List<Book> searchedItems = new ArrayList<>();
+        JComboBox<String> searchOptions = new JComboBox<>(new String[]{"Title", "Author", "ISBN", "Genre", "Review Score"});
+        JPanel searchPanel = new JPanel();
+        JTextField inputField = new JTextField();
+        JTextField firstNameField = new JTextField();
+        JTextField lastNameField = new JTextField();
+
+        searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
+        searchPanel.add(new JLabel("Select Search Type:"));
+        searchPanel.add(searchOptions);
+        searchPanel.add(new JLabel("Search Input:"));
+        searchPanel.add(inputField);
+
+        searchOptions.addActionListener(e -> {
+            String selected = (String) searchOptions.getSelectedItem();
+            searchPanel.removeAll();
+            searchPanel.add(new JLabel("Select Search Type:"));
+            searchPanel.add(searchOptions);
+
+            if ("Author".equals(selected)) {
+                searchPanel.add(new JLabel("First Name:"));
+                searchPanel.add(firstNameField);
+                searchPanel.add(new JLabel("Last Name:"));
+                searchPanel.add(lastNameField);
+            } else {
+                searchPanel.add(new JLabel("Search by " + selected.toLowerCase() + ":"));
+                searchPanel.add(inputField);
+            }
+
+            searchPanel.revalidate();
+            searchPanel.repaint();
+        });
+
+        JScrollPane scrollPane = new JScrollPane(searchPanel);
+        scrollPane.setPreferredSize(new Dimension(400, 200));
+        int result = JOptionPane.showConfirmDialog(null, scrollPane, "Search", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String searchType = (String) searchOptions.getSelectedItem();
+            switch (searchType) {
+                case "Author":
+                    searchedItems = bookController.searchBookByAuthor(firstNameField.getText(), lastNameField.getText());
+                    break;
+                case "Title":
+                    searchedItems = bookController.searchBookByTitle(inputField.getText());
+                    break;
+                case "ISBN":
+                    searchedItems = bookController.searchBookByISBN(inputField.getText());
+                    break;
+                case "Genre":
+                    searchedItems = bookController.searchBookByGenre(inputField.getText());
+                    break;
+                case "Review Score":
+                    searchedItems = bookController.searchBookByRating(Integer.parseInt(inputField.getText()));
+                    break;
+                default:
+                    JOptionPane.showMessageDialog(null, "Invalid search type selected.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+            if (searchedItems.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "No results found.", "Search Results", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                displayBooks(searchedItems);
+            }
+        }
+    }
+}

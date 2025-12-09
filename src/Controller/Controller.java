@@ -1,0 +1,79 @@
+package Controller;
+
+import Model.*;
+import View.UserView;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+public class Controller {
+
+    private Connection con;
+    private QL_Interface queryLogic;
+    private UserLogic userLogic;
+    private BookController bookController;
+    private AuthorController authorController;
+    private ReviewController reviewController;
+    private UserView userView;
+
+    private String currentUser;
+
+    public Controller(Connection con) {
+        this.con = con;
+        this.queryLogic = new QueryLogic(con);
+        this.userLogic = new UserLogic(con);
+        this.bookController = new BookController(queryLogic);
+        this.authorController = new AuthorController(queryLogic);
+        this.reviewController = new ReviewController(queryLogic);
+        this.userView = new UserView(bookController, authorController, reviewController, logoutAction);
+    }
+
+    public void startQuerying() throws SQLException, InterruptedException {
+        ExecutorService execute = Executors.newSingleThreadExecutor();
+        try {
+            execute.submit(() -> {
+                try {
+
+                    userView.showUserProfile(this::getCurrentUser);
+                } catch (DatabaseException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } finally {
+            execute.shutdown();
+            execute.awaitTermination(10, TimeUnit.SECONDS);
+        }
+    }
+
+    private final Runnable logoutAction = () -> {
+        System.out.println("Logout action invoked.");
+        try {
+            if (con != null && !con.isClosed()) {
+                con.close();
+                System.out.println("Connection closed successfully!");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error while closing connection: " + e.getMessage());
+            e.printStackTrace();
+        }
+    };
+
+    public void saveCurrentUser(String username) {
+        this.currentUser = username;
+    }
+
+    public String getCurrentUser() {
+        return currentUser;
+    }
+
+    public BookController getBookController() {
+        return bookController;
+    }
+
+    public AuthorController getAuthorController() {
+        return authorController;
+    }
+}
